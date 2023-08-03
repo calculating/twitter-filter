@@ -91,8 +91,6 @@ fastify.post("/api/chat", async function handler(request, reply) {
     JSON.stringify(json)
   );
 
-  json["request"] = request.body;
-
   return json;
 });
 
