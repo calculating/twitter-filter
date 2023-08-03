@@ -13,6 +13,7 @@ let checked_tweets = {};
 
 var i = 0; // number of reqs, for debugging
 
+var multishotPrompt = []
 
 const get_username = () =>
     document.querySelector('nav[aria-label="Primary"] a:nth-child(9)').href.match(/\w*$/)[0]
@@ -71,7 +72,9 @@ const xIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill=
 `
 
 function gpt_filter(element) {
+    const post_text = element.innerText.split('\n').slice(0, -4).join('\n');
     const elementClone = element.innerHTML
+
     // element.querySelector("div[data-testid='tweetText']").textContent -> get tweet text
     const hasImage = !!element.querySelector("div[data-testid='tweetPhoto']") // also grabs videos.
 
@@ -87,6 +90,18 @@ function gpt_filter(element) {
 
     b.onclick = () => {
         createFeedbackModal(elementClone)
+
+        // add the tweet to the multishot prompt as a filtered tweet.
+        multishotPrompt.concat([
+            {
+                "role": "user",
+                "content": post_text
+            },
+            {
+                "role": "assistant",
+                "content": "FILTER"
+            },
+        ])
     }
 
     element.appendChild(b)
@@ -105,8 +120,6 @@ function gpt_filter(element) {
         console.error('Save tweet', e)
     });
 
-    const post_text = element.innerText.split('\n').slice(0, -4).join('\n');
-    
     if (Object.keys(checked_tweets).includes(post_text)) {
         if (checked_tweets[post_text] === "FILTER") {
             element.style.backgroundColor = red;
@@ -132,7 +145,7 @@ function gpt_filter(element) {
         },
         body: JSON.stringify({
             'model': 'gpt-3.5-turbo',
-            'messages': [{"role": "system", "content": system_prompt}].concat([{'role': 'user', 'content': post_text + hasImage ? '\n\n[IMAGE]' : ''}]),
+            'messages': [{"role": "system", "content": system_prompt}].concat(multishotPrompt).concat([{'role': 'user', 'content': post_text + hasImage ? '\n\n[IMAGE]' : ''}]),
             'temperature': 0.7
         })
     }).then(response => response.json()).then(
