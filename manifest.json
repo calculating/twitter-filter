@@ -2,5 +2,13 @@
   "manifest_version": 3,
   "name": "twilter",
   "version": "1.0",
-  "description": "foobar"
+  "description": "foobar",
+  "content_scripts": [{
+    "matches": ["https://*.twitter.com/*"],
+    "css": ["css/styles.css"],
+    "js": ["scripts/content.js"]
+  }],
+  "action" : {
+    "default_popup" : "popup.html"
+}
 }
