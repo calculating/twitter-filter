@@ -29,7 +29,7 @@ fastify.post("/api/tweet", async function handler(request, reply) {
     await db.run(
       "INSERT INTO raw_tweets (raw_text, ip, username) VALUES (?, ?, ?)",
       request.body.raw_text,
-      ip,
+      request.ip,
       request.body.username
     );
     reply.status(200).send("OK");
@@ -98,7 +98,7 @@ const initDB = async () => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       raw_text VARCHAR NOT NULL,
-      username VARCHAR NOT NULL,
+      username VARCHAR NOT NULL, -- username of the person scraping
       ip VARCHAR
     );
 
