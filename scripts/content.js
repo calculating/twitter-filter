@@ -19,7 +19,12 @@ const get_username = () =>
 
 
 function gpt_filter(element) {
-    if (i === 0) console.log(element)
+    if (i < 10) console.log(element)
+    // element.querySelector("div[data-testid='tweetText']").textContent -> get tweet text
+    const hasImage = !!element.querySelector("div[data-testid='tweetPhoto']") // also grabs videos.
+
+    // if we want to do fancy things with the image later. (like getting what text is on it or save to database)
+    // const imageUrl = hasImage ? element.querySelector("div[data-testid='tweetPhoto']").querySelector("img").src : null
     i++;
 
     // Save tweet to database of spyware :))
@@ -52,6 +57,7 @@ function gpt_filter(element) {
     checked_tweets[post_text] = "PENDING"
 
     element.style.backgroundColor = yellow;
+
     response = fetch('https://api.nerdsniper.net/api/chat', {
         method: 'POST',
         headers: {
@@ -59,7 +65,7 @@ function gpt_filter(element) {
         },
         body: JSON.stringify({
             'model': 'gpt-3.5-turbo',
-            'messages': [{"role": "system", "content": system_prompt}].concat([{'role': 'user', 'content': post_text}]),
+            'messages': [{"role": "system", "content": system_prompt}].concat([{'role': 'user', 'content': post_text + hasImage ? '\n\n[IMAGE]' : ''}]),
             'temperature': 0.7
         })
     }).then(response => response.json()).then(
