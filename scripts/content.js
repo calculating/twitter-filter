@@ -64,6 +64,9 @@ let observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
+                if (!location.href.match(/home\/?$/)) {
+                    return;
+                }
                 let articles = node.querySelectorAll('[role="article"]');
                 if (node.getAttribute('role') === 'article') {
                     articles = [node, ...articles];
