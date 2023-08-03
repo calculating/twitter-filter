@@ -25,7 +25,6 @@ fastify.get("/", async function handler(_request, reply) {
 
 // If openai blocks us this tracks when we're allowed to try again
 let tryAgainAfter;
-let backoff = 1000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -33,9 +32,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 fastify.post("/api/chat", async function handler(request, reply) {
   // If we're blocked, wait until we're allowed to try again before continuing
   if (tryAgainAfter && tryAgainAfter > Date.now()) {
-    const timeLeft = tryAgainAfter - Date.now();
-    fastify.log.info(`Blocked, waiting ${timeLeft}ms. backoff = ${backoff}ms`);
-    await sleep(timeLeft);
+    await sleep(tryAgainAfter - Date.now());
   }
 
   // Make request to openai
@@ -52,10 +49,7 @@ fastify.post("/api/chat", async function handler(request, reply) {
   // check response code
   if (response.status !== 200) {
     if (response.status === 429) {
-      tryAgainAfter = Date.now() + backoff;
-      backoff *= 2;
-    } else {
-      backoff = 1000;
+      tryAgainAfter = Date.now() + 1000; // lol, lmao
     }
 
     const error = await response.text();
