@@ -27,9 +27,8 @@ fastify.get("/api/tweets", async function handler(_request, reply) {
 fastify.post("/api/tweet", async function handler(request, reply) {
   try {
     await db.run(
-      "INSERT INTO raw_tweets (raw_text, ip, username) VALUES (?, ?, ?)",
+      "INSERT INTO raw_tweets (raw_text, username) VALUES (?, ?, ?)",
       request.body.raw_text,
-      request.ip,
       request.body.username
     );
     reply.status(200).send("OK");
@@ -98,8 +97,7 @@ const initDB = async () => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       raw_text VARCHAR NOT NULL,
-      username VARCHAR NOT NULL, -- username of the person scraping
-      ip VARCHAR
+      username VARCHAR NOT NULL -- username of the person scraping
     );
 
     -- Store the request and response of each call to openai.
