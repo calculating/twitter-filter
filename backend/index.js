@@ -13,10 +13,34 @@ fastify.register(cors, {
 
 let db;
 
-fastify.get("/", async function handler(_request, reply) {
+fastify.get("/api/tweets", async function handler(_request, reply) {
   try {
     const tweets = await db.all("SELECT * FROM tweets");
     return tweets;
+  } catch (err) {
+    fastify.log.error(err);
+    reply.status(500).send("Error accessing database");
+  }
+});
+
+// Save tweet to db
+fastify.post("/api/tweet", async function handler(request, reply) {
+  try {
+    const b = request.body;
+
+    await db.run(
+      "INSERT INTO tweets (tweet_created_at, name, username, text, comments, retweets, likes, views) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      Date.parse(b.created_at),
+      b.name,
+      b.username,
+      b.text,
+      b.comments,
+      b.retweets,
+      b.likes,
+      b.views
+    );
+
+    reply.status(200).send("OK");
   } catch (err) {
     fastify.log.error(err);
     reply.status(500).send("Error accessing database");
@@ -66,6 +90,8 @@ fastify.post("/api/chat", async function handler(request, reply) {
     JSON.stringify(request.body),
     JSON.stringify(json)
   );
+
+  json["request"] = request.body;
 
   return json;
 });
