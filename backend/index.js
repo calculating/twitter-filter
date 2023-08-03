@@ -98,7 +98,7 @@ const initDB = async () => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       raw_text VARCHAR NOT NULL,
-      username VARCHAR NOT NULL
+      username VARCHAR NOT NULL,
       ip VARCHAR
     );
 
