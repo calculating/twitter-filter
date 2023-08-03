@@ -22,7 +22,7 @@ fastify.register(cors, {
 fastify.register(fastifyCookie);
 fastify.register(fastifySession, {
   secret: fastify.config.SESSION_SECRET,
-  cookie: { secure: false }, // TODO: Why??
+  cookie: { secure: false }, // support localhost
 });
 
 const oa = new OAuth.OAuth(
@@ -31,7 +31,7 @@ const oa = new OAuth.OAuth(
   fastify.config.TWITTER_CONSUMER_KEY,
   fastify.config.TWITTER_CONSUMER_SECRET,
   "1.0A",
-  "http://localhost:3000/callback",
+  fastify.config.OAUTH_CALLBACK,
   "HMAC-SHA1"
 );
 
