@@ -1,9 +1,15 @@
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import Fastify from "fastify";
+import cors from "@fastify/cors";
 
 const fastify = Fastify({ logger: true });
 sqlite3.verbose();
+
+fastify.register(cors, {
+  origin: "https://twitter.com",
+  methods: ["GET", "POST"], // replace with the methods you want to allow
+});
 
 let db;
 
