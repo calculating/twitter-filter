@@ -34,7 +34,7 @@ fastify.post("/api/chat", async function handler(request, reply) {
   // If we're blocked, wait until we're allowed to try again before continuing
   if (tryAgainAfter && tryAgainAfter > Date.now()) {
     const timeLeft = tryAgainAfter - Date.now();
-    fastify.log(`Blocked, waiting ${timeLeft}ms. backoff = ${backoff}ms`);
+    fastify.log.info(`Blocked, waiting ${timeLeft}ms. backoff = ${backoff}ms`);
     await sleep(timeLeft);
   }
 
