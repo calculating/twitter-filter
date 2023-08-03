@@ -1,4 +1,7 @@
+console.log("script is running.")
+
 if (localStorage.getItem('systemprompt') == null) {
+    // create dialogue that asks the user for a system prompt.
     localStorage.setItem('systemprompt', `Given the following preferences, mark Tweets as either PASS or FILTER, where filtered Tweets will be removed from the user's feed.\n\nPreferences:\n- like: big news about physics\n- dislike: non-substantive content, opinions/questions\n- like: posts sharing ai research papers\n- dislike: nearly anything cryptocurrency related, unless it's particularly interesting from a mathematics or cryptography perspective\n- err on the side of passing posts that don't have enough context\n- filter posts that are social in essence, about someone's personal life\n- in general, if you don't learn anything new about actual things in the world from a tweet, it should be filtered. For example, "this is going to be the most chaotic decade in human history" doesn't actually contain any substative information.\n- No rhetorical question tweets.\n- no promotional tweets\n- nothing that seems like a clickbaity list, i.e. "THESE 5 SIMPLE TRICKS WILL MAKE YOU LITTERALLY MAGIC"`);
 }
 
@@ -297,12 +300,17 @@ multishot_prompt = [
     }
 ]
 
+var isLightMode = document.head.querySelector("[name~=theme-color][content]").content === "#FFFFFF"
+var red = isLightMode ? "#ff9999" : "#660000"
+var yellow = isLightMode ? "#fffdb5" : "#4B4901"
+var blue = isLightMode ? "#b5e9ff" : "#00354B"
+
 function gpt_filter(element) {
     post_text = element.innerText.split('\n').slice(0, -4).join('\n');
     if (texts.includes(post_text)) {
         return;
     }
-    element.style.backgroundColor = '#4B4901';
+    element.style.backgroundColor = yellow;
     response = fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -318,12 +326,12 @@ function gpt_filter(element) {
         data => {
             if (data.choices[0].message.content == 'FILTER') {
                 console.log('filtered')
-                element.style.backgroundColor = '#660000';
+                element.style.backgroundColor = red
                 element.style.height = '5px';
                 texts.push(post_text);
             } else {
                 console.log('passed')
-                element.style.backgroundColor = '#00354B';
+                element.style.backgroundColor = blue;
                 texts.push(post_text);
             }
         }
