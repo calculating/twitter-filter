@@ -15,7 +15,7 @@ let db;
 
 fastify.get("/api/tweets", async function handler(_request, reply) {
   try {
-    const tweets = await db.all("SELECT * FROM tweets");
+    const tweets = await db.all("SELECT * FROM raw_tweets");
     return tweets;
   } catch (err) {
     fastify.log.error(err);
@@ -26,8 +26,12 @@ fastify.get("/api/tweets", async function handler(_request, reply) {
 // Save tweet to db
 fastify.post("/api/tweet", async function handler(request, reply) {
   try {
-    const raw_text = request.body.raw_text;
-    await db.run("INSERT INTO raw_tweets (raw_text) VALUES (?)", raw_text);
+    await db.run(
+      "INSERT INTO raw_tweets (raw_text, ip, username) VALUES (?, ?, ?)",
+      request.body.raw_text,
+      ip,
+      request.body.username
+    );
     reply.status(200).send("OK");
   } catch (err) {
     fastify.log.error(err);
@@ -93,7 +97,9 @@ const initDB = async () => {
     CREATE TABLE IF NOT EXISTS raw_tweets (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      raw_text VARCHAR NOT NULL
+      raw_text VARCHAR NOT NULL,
+      username VARCHAR NOT NULL
+      ip VARCHAR
     );
 
     -- Store the request and response of each call to openai.
