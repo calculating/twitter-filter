@@ -27,7 +27,7 @@ fastify.get("/api/tweets", async function handler(_request, reply) {
 fastify.post("/api/tweet", async function handler(request, reply) {
   try {
     await db.run(
-      "INSERT INTO raw_tweets (raw_text, username) VALUES (?, ?, ?)",
+      "INSERT INTO raw_tweets (raw_text, username) VALUES (?, ?)",
       request.body.raw_text,
       request.body.username
     );
