@@ -103,7 +103,7 @@ const initDB = async () => {
 
 const start = async () => {
   db = await open({
-    filename: "/tmp/database.db",
+    filename: "database.db",
     driver: sqlite3.Database,
   });
   await initDB();
