@@ -26,20 +26,8 @@ fastify.get("/api/tweets", async function handler(_request, reply) {
 // Save tweet to db
 fastify.post("/api/tweet", async function handler(request, reply) {
   try {
-    const b = request.body;
-
-    await db.run(
-      "INSERT INTO tweets (tweet_created_at, name, username, text, comments, retweets, likes, views) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      Date.parse(b.created_at),
-      b.name,
-      b.username,
-      b.text,
-      b.comments,
-      b.retweets,
-      b.likes,
-      b.views
-    );
-
+    const raw_text = request.body.raw_text;
+    await db.run("INSERT INTO raw_tweets (raw_text) VALUES (?)", raw_text);
     reply.status(200).send("OK");
   } catch (err) {
     fastify.log.error(err);
@@ -101,20 +89,11 @@ fastify.addHook("onClose", async (_instance, done) => {
 
 const initDB = async () => {
   await db.exec(`
-    -- Later we could introduce a table for users with foreign keys, but for now this is simple.
-    CREATE TABLE IF NOT EXISTS tweets (
+    -- Raw tweet data, we can always parse it later
+    CREATE TABLE IF NOT EXISTS raw_tweets (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      tweet_created_at DATETIME NOT NULL,
-
-      name TEXT NOT NULL,
-      username TEXT NOT NULL,
-      text TEXT NOT NULL,
-
-      comments INTEGER NOT NULL,
-      retweets INTEGER NOT NULL,
-      likes INTEGER NOT NULL,
-      views INTEGER NOT NULL
+      raw_text VARCHAR NOT NULL
     );
 
     -- Store the request and response of each call to openai.
