@@ -1,19 +1,67 @@
 button.feedback-button {
-    background-color: #4CAF50;
     border: none;
-    color: white;
-    padding: 15px 32px;
-    text-align: center;
-    text-decoration: none;
-    font-size: 16px;
-    margin: 4px 2px;
+    color: black;
+    height: 4rem;
+    width: 4rem;
+    padding: 0;
+    border-radius: 100%;
     cursor: pointer;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    opacity: 20%;
 }
 
 div.modalWrapper {
+    font-family: "Arial" sans-serif;
     position: fixed;
-    z-index: 10;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 100;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+}
+
+div.modal {
+    max-width: 50rem;
+    padding: 4rem;
+    background-color: white;
+    border-radius: 2rem;
+}
+
+div.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vh;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+}
+
+textarea.feedback-input {
+    padding: 0.75rem 1.5rem;
+    height: 10rem;
+    width: calc(100% - 3rem);
+}
+
+div.feedback-tweet {
+    border-radius: 1rem;
+    padding: 1rem 2rem; /* top/bottom left/right */
+    border: #cfd9de 1px solid; /* the color twitter uses for quote tweet borders. */
+    margin: 4rem 0;
+}
+
+h1.feedback-title {
+    font-weight: bold;
+    font-size: 2rem;
+    opacity: 70%;
+}
+
+p.feedback-description {
+    opacity: 50%;
 }

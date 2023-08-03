@@ -21,29 +21,57 @@ const get_username = () =>
 function createFeedbackModal(tweetHTMLElement) {
     const modalWrapper = document.createElement("div")
     const modal = document.createElement("div")
+    modalWrapper.className = "modalWrapper"
+    modal.className = "modal"
     modalWrapper.appendChild(modal)
 
+    modal.innerHTML = `<h1 class="feedback-title">What's wrong with this tweet?</h1>`
+    modal.innerHTML += `<p class="feedback-description">[chrome extension] will remember your preferences and won't show tweets like this in the future.</p>`
+    // modal.appendChild(tweetHTMLElement)
+    modal.innerHTML += `<div class="feedback-tweet">${tweetHTMLElement}</div>`
 
-    modal.innerHTML = `<p>Enter feedback for this tweet</p>`
-    modal.appendChild(tweetHTMLElement)
-    modal.className = "modal"
+    const input = document.createElement("textarea")
+    input.className = "feedback-input"
+    input.placeholder = "i dislike nearly anything cryptocurrency related, unless it's particularly interesting from a mathematics or cryptography perspective"
 
-    const input = document.createElement("input")
+    function handleSubmit(feedbackValue) {
+        feedback(feedbackValue);
+        document.body.removeChild(modalWrapper)
+        document.body.removeChild(overlay)
+    }
 
     input.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            feedback(this.value);
-            document.body.removeChild(modal)
+        console.log(e)
+        if (e.key === 'Enter' && e.ctrlKey) {
+            handleSubmit(this.value)
         }
     });
 
     modal.appendChild(input)
-    document.body.appendChild(modal)
+    document.body.appendChild(modalWrapper)
+
+    const overlay = document.createElement("div")
+    overlay.className = "overlay"
+    document.body.appendChild(overlay)
+
+    // document.body.onClick = () => {
+    //     console.log("clicked body.")
+    //     // if not clicking in the modal, remove the modal.
+    //     if (document.body.onClick.target.className !== "modalWrapper") {
+    //         document.body.removeChild(modal)
+    //     }
+    // }
 }
 
 
+// svg from heroicons.com
+const xIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+<path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clip-rule="evenodd" />
+</svg>
+`
+
 function gpt_filter(element) {
-    if (i === 10) console.log(element)
+    const elementClone = element.innerHTML
     // element.querySelector("div[data-testid='tweetText']").textContent -> get tweet text
     const hasImage = !!element.querySelector("div[data-testid='tweetPhoto']") // also grabs videos.
 
@@ -55,13 +83,10 @@ function gpt_filter(element) {
     const b = document.createElement("button")
     b.style.display = "none"
     b.className = "feedback-button"
-    b.innerHTML = "feedback"
-  // x icon from heroicons.com
-  
-    // b.innerHTML = "Feedback" // todo switch to icon. plus sign?
+    b.innerHTML = xIcon
 
     b.onclick = () => {
-        createFeedbackModal(element)
+        createFeedbackModal(elementClone)
     }
 
     element.appendChild(b)
