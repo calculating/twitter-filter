@@ -17,8 +17,20 @@ fastify.get("/", async function handler(_request, reply) {
   }
 });
 
+// If openai blocks us this tracks when we're allowed to try again
+let tryAgainAfter;
+let backoff = 1000;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 // Proxy to the openai chat API at https://api.openai.com/v1/chat/completions
 fastify.post("/api/chat", async function handler(request, reply) {
+  // If we're blocked, wait until we're allowed to try again before continuing
+  if (tryAgainAfter && tryAgainAfter > Date.now()) {
+    await sleep(tryAgainAfter - Date.now());
+  }
+
+  // Make request to openai
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -31,6 +43,13 @@ fastify.post("/api/chat", async function handler(request, reply) {
 
   // check response code
   if (response.status !== 200) {
+    if (response.status === 429) {
+      tryAgainAfter = Date.now() + backoff;
+      backoff *= 2;
+    } else {
+      backoff = 1000;
+    }
+
     const error = await response.text();
     reply.status(response.status).send(error);
     fastify.log.error(error);
