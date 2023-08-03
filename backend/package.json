@@ -5,8 +5,13 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "@fastify/cookie": "^9.0.4",
     "@fastify/cors": "^8.3.0",
+    "@fastify/env": "^4.2.0",
+    "@fastify/session": "^10.4.0",
     "fastify": "^4.21.0",
+    "node-fetch": "^3.3.2",
+    "oauth": "^0.10.0",
     "sqlite": "^5.0.1",
     "sqlite3": "^5.1.6"
   }
