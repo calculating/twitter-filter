@@ -19,7 +19,7 @@ const get_username = () =>
     document.querySelector('nav[aria-label="Primary"] a:nth-child(9)').href.match(/\w*$/)[0]
 
 
-function createFeedbackModal(tweetHTMLElement) {
+function createFeedbackModal(tweetInnerHTML) {
     const modalWrapper = document.createElement("div")
     const modal = document.createElement("div")
     modalWrapper.className = "modalWrapper"
@@ -28,8 +28,9 @@ function createFeedbackModal(tweetHTMLElement) {
 
     modal.innerHTML = `<h1 class="feedback-title">What's wrong with this tweet?</h1>`
     modal.innerHTML += `<p class="feedback-description">[chrome extension] will remember your preferences and won't show tweets like this in the future.</p>`
-    // modal.appendChild(tweetHTMLElement)
-    modal.innerHTML += `<div class="feedback-tweet">${tweetHTMLElement}</div>`
+    modal.innerHTML += `<p class="feedback-description">To avoid this dialogue, hold down shift when deleting tweets</p>`
+
+    modal.innerHTML += `<div class="feedback-tweet">${tweetInnerHTML}</div>`
 
     const input = document.createElement("textarea")
     input.className = "feedback-input"
@@ -42,26 +43,31 @@ function createFeedbackModal(tweetHTMLElement) {
     }
 
     input.addEventListener('keypress', function (e) {
-        console.log(e)
         if (e.key === 'Enter' && e.ctrlKey) {
             handleSubmit(this.value)
         }
     });
 
     modal.appendChild(input)
+    modal.innerHTML += `<p class="feedback-description">Ctrl+enter to submit</p>`
+
     document.body.appendChild(modalWrapper)
 
     const overlay = document.createElement("div")
     overlay.className = "overlay"
     document.body.appendChild(overlay)
 
-    // document.body.onClick = () => {
+    // const closeModalOnClickingBody = (event) => {
     //     console.log("clicked body.")
-    //     // if not clicking in the modal, remove the modal.
-    //     if (document.body.onClick.target.className !== "modalWrapper") {
-    //         document.body.removeChild(modal)
+    //     // if not clicking the modal or a child of the modal, close the modal.
+    //     if (!modal.contains(event.target)) {
+    //         document.body.removeChild(modalWrapper)
+    //         document.body.removeChild(overlay)
+    //         document.removeEventListener("click", closeModalOnClickingBody)
     //     }
     // }
+
+    // document.addEventListener("click", closeModalOnClickingBody)
 }
 
 
@@ -88,8 +94,13 @@ function gpt_filter(element) {
     b.className = "feedback-button"
     b.innerHTML = xIcon
 
-    b.onclick = () => {
-        createFeedbackModal(elementClone)
+    b.onclick = (event) => {
+        checked_tweets[post_text] = "FILTER"
+        element.style.backgroundColor = red;
+        element.style.height = "5px";
+
+        // open the feedback modal if shift is not pressed.
+        if (!event.shiftKey) createFeedbackModal(elementClone)
 
         // add the tweet to the multishot prompt as a filtered tweet.
         multishotPrompt.concat([

@@ -53,7 +53,7 @@ div.feedback-tweet {
     border-radius: 1rem;
     padding: 1rem 2rem; /* top/bottom left/right */
     border: #cfd9de 1px solid; /* the color twitter uses for quote tweet borders. */
-    margin: 4rem 0;
+    margin: 3rem 0;
 }
 
 h1.feedback-title {
