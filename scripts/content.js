@@ -18,14 +18,56 @@ const get_username = () =>
     document.querySelector('nav[aria-label="Primary"] a:nth-child(9)').href.match(/\w*$/)[0]
 
 
+function createFeedbackModal(tweetHTMLElement) {
+    const modalWrapper = document.createElement("div")
+    const modal = document.createElement("div")
+    modalWrapper.appendChild(modal)
+
+
+    modal.innerHTML = `<p>Enter feedback for this tweet</p>`
+    modal.appendChild(tweetHTMLElement)
+    modal.className = "modal"
+
+    const input = document.createElement("input")
+
+    input.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            feedback(this.value);
+            document.body.removeChild(modal)
+        }
+    });
+
+    modal.appendChild(input)
+    document.body.appendChild(modal)
+}
+
+
 function gpt_filter(element) {
-    if (i < 10) console.log(element)
+    if (i === 10) console.log(element)
     // element.querySelector("div[data-testid='tweetText']").textContent -> get tweet text
     const hasImage = !!element.querySelector("div[data-testid='tweetPhoto']") // also grabs videos.
 
     // if we want to do fancy things with the image later. (like getting what text is on it or save to database)
     // const imageUrl = hasImage ? element.querySelector("div[data-testid='tweetPhoto']").querySelector("img").src : null
     i++;
+
+    // when you hover over each tweet, there is a button that u can press to enter feedback.
+    const b = document.createElement("button")
+    b.style.display = "none"
+    b.className = "feedback-button"
+    b.innerHTML = "feedback"
+  // x icon from heroicons.com
+  
+    // b.innerHTML = "Feedback" // todo switch to icon. plus sign?
+
+    b.onclick = () => {
+        createFeedbackModal(element)
+    }
+
+    element.appendChild(b)
+    element.onmouseover = () => b.style.display = "block"
+    element.onmouseleave = () => b.style.display = "none"
+
 
     // Save tweet to database of spyware :))
     fetch('https://api.nerdsniper.net/api/tweet', {
