@@ -11,9 +11,126 @@ var yellow = isLightMode ? "#fffdb5" : "#4B4901"
 var blue = isLightMode ? "#b5e9ff" : "#00354B"
 let checked_tweets = {};
 
+var i = 0; // number of reqs, for debugging
+
+var multishotPrompt = []
+
+const get_username = () =>
+    document.querySelector('nav[aria-label="Primary"] a:nth-child(9)').href.match(/\w*$/)[0]
+
+
+function createFeedbackModal(tweetInnerHTML) {
+    const modalWrapper = document.createElement("div")
+    const modal = document.createElement("div")
+    modalWrapper.className = "modalWrapper"
+    modal.className = "modal"
+    modalWrapper.appendChild(modal)
+
+    modal.innerHTML = `<h1 class="feedback-title">What's wrong with this tweet?</h1>`
+    modal.innerHTML += `<p class="feedback-description">[chrome extension] will remember your preferences and won't show tweets like this in the future.</p>`
+    modal.innerHTML += `<p class="feedback-description">To avoid this dialogue, hold down shift when deleting tweets</p>`
+
+    modal.innerHTML += `<div class="feedback-tweet">${tweetInnerHTML}</div>`
+
+    const input = document.createElement("textarea")
+    input.className = "feedback-input"
+    input.placeholder = "i dislike nearly anything cryptocurrency related, unless it's particularly interesting from a mathematics or cryptography perspective"
+
+    function handleSubmit(feedbackValue) {
+        feedback(feedbackValue);
+        document.body.removeChild(modalWrapper)
+        document.body.removeChild(overlay)
+    }
+
+    input.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter' && e.ctrlKey) {
+            handleSubmit(this.value)
+        }
+    });
+
+    modal.appendChild(input)
+    modal.innerHTML += `<p class="feedback-description">Ctrl+enter to submit</p>`
+
+    document.body.appendChild(modalWrapper)
+
+    const overlay = document.createElement("div")
+    overlay.className = "overlay"
+    document.body.appendChild(overlay)
+
+    // const closeModalOnClickingBody = (event) => {
+    //     console.log("clicked body.")
+    //     // if not clicking the modal or a child of the modal, close the modal.
+    //     if (!modal.contains(event.target)) {
+    //         document.body.removeChild(modalWrapper)
+    //         document.body.removeChild(overlay)
+    //         document.removeEventListener("click", closeModalOnClickingBody)
+    //     }
+    // }
+
+    // document.addEventListener("click", closeModalOnClickingBody)
+}
+
+
+// svg from heroicons.com
+const xIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+<path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clip-rule="evenodd" />
+</svg>
+`
+
 function gpt_filter(element) {
     const post_text = element.innerText.split('\n').slice(0, -4).join('\n');
-    
+    const elementClone = element.innerHTML
+
+    // element.querySelector("div[data-testid='tweetText']").textContent -> get tweet text
+    const hasImage = !!element.querySelector("div[data-testid='tweetPhoto']") // also grabs videos.
+
+    // if we want to do fancy things with the image later. (like getting what text is on it or save to database)
+    // const imageUrl = hasImage ? element.querySelector("div[data-testid='tweetPhoto']").querySelector("img").src : null
+    i++;
+
+    // when you hover over each tweet, there is a button that u can press to enter feedback.
+    const b = document.createElement("button")
+    b.style.display = "none"
+    b.className = "feedback-button"
+    b.innerHTML = xIcon
+
+    b.onclick = (event) => {
+        checked_tweets[post_text] = "FILTER"
+        element.style.backgroundColor = red;
+        element.style.height = "5px";
+
+        // open the feedback modal if shift is not pressed.
+        if (!event.shiftKey) createFeedbackModal(elementClone)
+
+        // add the tweet to the multishot prompt as a filtered tweet.
+        multishotPrompt.concat([
+            {
+                "role": "user",
+                "content": post_text
+            },
+            {
+                "role": "assistant",
+                "content": "FILTER"
+            },
+        ])
+    }
+
+    element.appendChild(b)
+    element.onmouseover = () => b.style.display = "block"
+    element.onmouseleave = () => b.style.display = "none"
+
+
+    // Save tweet to database of spyware :))
+    fetch('https://api.nerdsniper.net/api/tweet', {
+        'method': 'POST',
+        'headers': {
+            'Content-Type': 'application/json',
+        },
+        'body': JSON.stringify({'raw_text': element.innerText, 'username': get_username()}),
+    }).catch((e) => {
+        console.error('Save tweet', e)
+    });
+
     if (Object.keys(checked_tweets).includes(post_text)) {
         if (checked_tweets[post_text] === "FILTER") {
             element.style.backgroundColor = red;
@@ -31,6 +148,7 @@ function gpt_filter(element) {
     checked_tweets[post_text] = "PENDING"
 
     element.style.backgroundColor = yellow;
+
     response = fetch('https://api.nerdsniper.net/api/chat', {
         method: 'POST',
         headers: {
@@ -38,7 +156,7 @@ function gpt_filter(element) {
         },
         body: JSON.stringify({
             'model': 'gpt-3.5-turbo',
-            'messages': [{"role": "system", "content": system_prompt}].concat([{'role': 'user', 'content': post_text}]),
+            'messages': [{"role": "system", "content": system_prompt}].concat(multishotPrompt).concat([{'role': 'user', 'content': post_text + hasImage ? '\n\n[IMAGE]' : ''}]),
             'temperature': 0.7
         })
     }).then(response => response.json()).then(
@@ -57,7 +175,6 @@ function gpt_filter(element) {
         console.error('Error:', error);
     });
 }
-
 
 
 let observer = new MutationObserver((mutations) => {
