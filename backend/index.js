@@ -76,10 +76,16 @@ fastify.get("/", async function (req, reply) {
       data.id_str
     );
 
-    return reply.view("index.ejs", { data: data, db_user: user });
+    // Get subscription info from Stripe
+    const subscription =
+      user && user.stripe_subscription_id
+        ? await stripe.subscriptions.retrieve(user.stripe_subscription_id)
+        : null;
+
+    return reply.view("index.ejs", { data: data, subscription: subscription });
   } catch (error) {
     fastify.log.error(error);
-    return reply.view("index.ejs", { data: null, db_user: null });
+    return reply.view("index.ejs", { data: null });
   }
 });
 
@@ -166,6 +172,8 @@ fastify.get("/stripe", async function (req, reply) {
 });
 
 fastify.get("/stripe/success", async function (req, reply) {
+  // SECURITY: The session_id may be spoofed by a malicious user in order to steal someone else's subscription. We handle this by making the users table unique over subscription & customer ids.
+
   if (!req.session.user) {
     // TODO: use middleware for this
     return reply.redirect("/login/twitter");
@@ -184,6 +192,27 @@ fastify.get("/stripe/success", async function (req, reply) {
 
   // return reply.send(JSON.stringify(session));
   return reply.redirect("/");
+});
+
+fastify.get("/stripe/cancel", async function (req, reply) {
+  if (!req.session.user) {
+    return reply.redirect("/login/twitter");
+  }
+
+  const { stripe_subscription_id } = await db.get(
+    `SELECT stripe_subscription_id FROM users WHERE twitter_id = ?`,
+    req.session.user.id_str
+  );
+
+  // Dumb way, cancel immediately
+  await stripe.subscriptions.cancel(stripe_subscription_id);
+
+  // Smart way, can do later
+  // await stripe.subscriptions.update(stripe_subscription_id, {
+  //   cancel_at_period_end: true,
+  // });
+
+  return reply.send(`Subscription ${stripe_subscription_id} canceled.`);
 });
 
 // FIXME: Insane security risk, exposing our database of user data to the world!
@@ -285,8 +314,8 @@ const initDB = async () => {
     CREATE TABLE IF NOT EXISTS users (
       twitter_id INTEGER PRIMARY KEY,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      stripe_customer_id VARCHAR, -- stripe customer id, possibly null if not paid
-      stripe_subscription_id VARCHAR -- stripe subscription id, possibly null if not paid
+      stripe_customer_id VARCHAR UNIQUE, -- stripe customer id, possibly null if not paid
+      stripe_subscription_id VARCHAR UNIQUE -- stripe subscription id, possibly null if not paid
     );
   `);
 };
