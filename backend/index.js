@@ -45,6 +45,26 @@ const oa = new OAuth.OAuth(
 
 let db;
 
+fastify.get("/", function (req, reply) {
+  fastify.log.info(`Session: ${JSON.stringify(req.session)}`);
+
+  oa.get(
+    "https://api.twitter.com/1.1/account/verify_credentials.json",
+    req.session.oauth.access_token,
+    req.session.oauth.access_token_secret,
+    (error, data, _res) => {
+      if (error) {
+        fastify.log.error(error);
+        return reply.send("Authentication Failure!");
+      } else {
+        const parsedData = JSON.parse(data);
+        fastify.log.info(parsedData);
+        return reply.send(`You are signed in: ${parsedData.screen_name}`);
+      }
+    }
+  );
+});
+
 fastify.get("/login/twitter", function handler(req, reply) {
   oa.getOAuthRequestToken((error, oauth_token, oauth_token_secret, _res) => {
     if (error) {
@@ -83,25 +103,8 @@ fastify.get("/callback", function (req, reply) {
           fastify.log.info(results, req.session.oauth);
 
           // you might want to start using the Access Token to make authenticated requests to the user's Twitter account at this point
-          // get user profile info as a test
 
-          oa.get(
-            "https://api.twitter.com/1.1/account/verify_credentials.json",
-            oauth_access_token,
-            oauth_access_token_secret,
-            (error, data, _res) => {
-              if (error) {
-                fastify.log.error(error);
-                return reply.send("Authentication Failure!");
-              } else {
-                const parsedData = JSON.parse(data);
-                fastify.log.info(parsedData);
-                return reply.send(
-                  `<p>You are signed in: ${parsedData.screen_name}</p>`
-                );
-              }
-            }
-          );
+          return reply.redirect("/");
         }
       }
     );
