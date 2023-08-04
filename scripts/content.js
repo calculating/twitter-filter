@@ -34,17 +34,26 @@ function createFeedbackModal(tweetInnerHTML) {
 
     const input = document.createElement("textarea")
     input.className = "feedback-input"
+    const id = "feedback-input-lskdfjslkd"
+    input.id = id
     input.placeholder = "i dislike nearly anything cryptocurrency related, unless it's particularly interesting from a mathematics or cryptography perspective"
+
+    function closeModal() {
+        document.body.removeChild(modalWrapper)
+        document.body.removeChild(overlay)
+        document.removeEventListener("click", closeModalOnClickingBody)
+    }
 
     function handleSubmit(feedbackValue) {
         feedback(feedbackValue);
-        document.body.removeChild(modalWrapper)
-        document.body.removeChild(overlay)
+        closeModal()
     }
 
     input.addEventListener('keypress', function (e) {
         if (e.key === 'Enter' && e.ctrlKey) {
             handleSubmit(this.value)
+        } else if (e.key === "Escape") {
+            closeModal()
         }
     });
 
@@ -57,17 +66,15 @@ function createFeedbackModal(tweetInnerHTML) {
     overlay.className = "overlay"
     document.body.appendChild(overlay)
 
-    // const closeModalOnClickingBody = (event) => {
-    //     console.log("clicked body.")
-    //     // if not clicking the modal or a child of the modal, close the modal.
-    //     if (!modal.contains(event.target)) {
-    //         document.body.removeChild(modalWrapper)
-    //         document.body.removeChild(overlay)
-    //         document.removeEventListener("click", closeModalOnClickingBody)
-    //     }
-    // }
+    const closeModalOnClickingBody = (event) => {
+        // if not clicking the modal or a child of the modal, close the modal.
+        if (!modal.contains(event.target)) {
+            closeModal()
+        }
+    }
 
-    // document.addEventListener("click", closeModalOnClickingBody)
+    waitForAndFocusElement("#" + id)
+    setTimeout(() => document.addEventListener("click", closeModalOnClickingBody), 100)
 }
 
 

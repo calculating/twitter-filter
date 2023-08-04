@@ -6,7 +6,7 @@
   "content_scripts": [{
     "matches": ["https://*.twitter.com/*"],
     "css": ["css/styles.css"],
-    "js": ["scripts/content.js"]
+    "js": ["scripts/content.js", "scripts/utils.js"]
   }],
   "action" : {
     "default_popup" : "popup.html"
