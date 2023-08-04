@@ -13,6 +13,14 @@ sqlite3.verbose();
 
 // @fastify/env wasn't working well lol
 fastify.config = process.env;
+["TWITTER_CONSUMER_KEY", "TWITTER_CONSUMER_SECRET", "OAUTH_CALLBACK"].forEach(
+  (k) => {
+    if (!fastify.config[k]) {
+      fastify.log.error(`Missing config: ${k}`);
+      process.exit(1);
+    }
+  }
+);
 
 fastify.register(cors, {
   origin: "https://twitter.com",
