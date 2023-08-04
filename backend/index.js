@@ -46,7 +46,9 @@ const oa = new OAuth.OAuth(
 let db;
 
 fastify.get("/", function (req, reply) {
-  fastify.log.info(`Session: ${JSON.stringify(req.session)}`);
+  if (!req.session.oauth?.access_token) {
+    return reply.redirect("/login/twitter");
+  }
 
   oa.get(
     "https://api.twitter.com/1.1/account/verify_credentials.json",
