@@ -13,6 +13,14 @@ sqlite3.verbose();
 
 // @fastify/env wasn't working well lol
 fastify.config = process.env;
+["TWITTER_CONSUMER_KEY", "TWITTER_CONSUMER_SECRET", "OAUTH_CALLBACK"].forEach(
+  (k) => {
+    if (!fastify.config[k]) {
+      fastify.log.error(`Missing config: ${k}`);
+      process.exit(1);
+    }
+  }
+);
 
 fastify.register(cors, {
   origin: "https://twitter.com",
@@ -37,6 +45,28 @@ const oa = new OAuth.OAuth(
 
 let db;
 
+fastify.get("/", function (req, reply) {
+  if (!req.session.oauth?.access_token) {
+    return reply.redirect("/login/twitter");
+  }
+
+  oa.get(
+    "https://api.twitter.com/1.1/account/verify_credentials.json",
+    req.session.oauth.access_token,
+    req.session.oauth.access_token_secret,
+    (error, data, _res) => {
+      if (error) {
+        fastify.log.error(error);
+        return reply.send("Authentication Failure!");
+      } else {
+        const parsedData = JSON.parse(data);
+        fastify.log.info(parsedData);
+        return reply.send(`You are signed in: ${parsedData.screen_name}`);
+      }
+    }
+  );
+});
+
 fastify.get("/login/twitter", function handler(req, reply) {
   oa.getOAuthRequestToken((error, oauth_token, oauth_token_secret, _res) => {
     if (error) {
@@ -49,7 +79,8 @@ fastify.get("/login/twitter", function handler(req, reply) {
       };
       fastify.log.info(req.session.oauth);
       return reply.redirect(
-        "https://twitter.com/oauth/authenticate?oauth_token=" + oauth_token
+        // "The GET oauth/authorize endpoint is used instead of GET oauth/authenticate. [for oauth 1.0a]"
+        "https://twitter.com/oauth/authorize?oauth_token=" + oauth_token
       );
     }
   });
@@ -75,25 +106,8 @@ fastify.get("/callback", function (req, reply) {
           fastify.log.info(results, req.session.oauth);
 
           // you might want to start using the Access Token to make authenticated requests to the user's Twitter account at this point
-          // get user profile info as a test
 
-          oa.get(
-            "https://api.twitter.com/1.1/account/verify_credentials.json",
-            oauth_access_token,
-            oauth_access_token_secret,
-            (error, data, _res) => {
-              if (error) {
-                fastify.log.error(error);
-                return reply.send("Authentication Failure!");
-              } else {
-                const parsedData = JSON.parse(data);
-                fastify.log.info(parsedData);
-                return reply.send(
-                  `<p>You are signed in: ${parsedData.screen_name}</p>`
-                );
-              }
-            }
-          );
+          return reply.redirect("/");
         }
       }
     );
