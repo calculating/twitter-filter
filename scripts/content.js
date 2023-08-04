@@ -30,7 +30,7 @@ function start() {
                     if (!location.href.match(/home\/?$/)) {
                         return;
                     }
-                    let articles = node.querySelectorAll('[role="article"]');
+                    let articles = node.querySelectorAll('[data-testid="tweet"]');
                     if (node.getAttribute('role') === 'article') {
                         articles = [node, ...articles];
                     }

@@ -1,4 +1,5 @@
 function processTweet(element) {
+    if (element.className.includes("cloned-modal-tweet")) return;
     const hasText = !!element.querySelector("div[data-testid='tweetText']")
     const tweetText = hasText ? element.querySelector("div[data-testid='tweetText']").textContent : ""
     const author = element.querySelector("div[data-testid='User-Name']").textContent
@@ -6,13 +7,13 @@ function processTweet(element) {
     const hasImage = !!element.querySelector("div[data-testid='tweetPhoto']") // also grabs videos.
     // const imageUrl = hasImage ? element.querySelector("div[data-testid='tweetPhoto']").querySelector("img").src : null
 
-    stylizeTweet(element, postText)
+    stylizeTweet(element, postText, hasImage)
     saveTweet(element)
     filterTweet(element, postText, hasImage)
 }
 
-function stylizeTweet(element, postText) {
-    const elementClone = element.innerHTML
+function stylizeTweet(element, postText, hasImage) {
+    const elementClone = element.cloneNode(true)
 
     // when you hover over each tweet, there is a button that u can press to enter feedback.
     const b = document.createElement("button")
@@ -25,7 +26,11 @@ function stylizeTweet(element, postText) {
         markTweetAsFiltered(element)
 
         // open the feedback modal if shift is not pressed.
-        if (!event.shiftKey) createFeedbackModal(elementClone)
+        if (!event.shiftKey) {
+            elementClone.className += " cloned-modal-tweet"
+            elementClone.style.backgroundColor = "white"
+            createFeedbackModal(elementClone, hasImage)
+        }
 
         // add the tweet to the multishot prompt as a filtered tweet.
         addMultishotPrompt([
@@ -128,7 +133,7 @@ function markTweetAsFiltered(element) {
     element.style.height = '5px';
 }
 
-function createFeedbackModal(tweetInnerHTML) {
+function createFeedbackModal(tweetElementClone, hasImage) {
     const modalWrapper = document.createElement("div")
     const modal = document.createElement("div")
     modalWrapper.className = "modalWrapper"
@@ -139,7 +144,13 @@ function createFeedbackModal(tweetInnerHTML) {
     modal.innerHTML += `<p class="feedback-description">[chrome extension] will remember your preferences and won't show tweets like this in the future.</p>`
     modal.innerHTML += `<p class="feedback-description">To avoid this dialogue, hold down shift when deleting tweets</p>`
 
-    modal.innerHTML += `<div class="feedback-tweet">${tweetInnerHTML}</div>`
+    // modal.innerHTML += `<div class="feedback-tweet">${tweetInnerHTML}</div>`
+    const tweetWithWrapper = document.createElement("div")
+    tweetWithWrapper.className = "feedback-tweet"
+    tweetWithWrapper.appendChild(tweetElementClone)
+    modal.appendChild(tweetWithWrapper)
+
+    if (hasImage) modal.innerHTML += `<p class="feedback-description" style="margin-top: 0;">Note: the AI can't see images when filtering your tweets (yet)</p>`
 
     const input = document.createElement("textarea")
     input.className = "feedback-input"
@@ -158,7 +169,7 @@ function createFeedbackModal(tweetInnerHTML) {
         closeModal()
     }
 
-    input.addEventListener('keypress', function (e) {
+    input.addEventListener('onchange', function (e) {
         if (e.key === 'Enter' && e.ctrlKey) {
             handleSubmit(this.value)
         } else if (e.key === "Escape") {
@@ -168,6 +179,13 @@ function createFeedbackModal(tweetInnerHTML) {
 
     modal.appendChild(input)
     modal.innerHTML += `<p class="feedback-description">Ctrl+enter to submit</p>`
+
+    // create a button to submit the feedback.
+    const submitButton = document.createElement("button")
+    submitButton.className = "feedback-submit"
+    submitButton.innerText = "Submit"
+    submitButton.onclick = () => handleSubmit(input.value)
+    modal.appendChild(submitButton)
 
     document.body.appendChild(modalWrapper)
 
