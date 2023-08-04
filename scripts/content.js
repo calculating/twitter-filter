@@ -50,7 +50,6 @@ function start() {
     };
 
     const targetNode = document.querySelector("body");
-    // const targetNode = document.querySelector('div[aria-label="Timeline: Your Home Timeline"]'); // doesn't work for some reason
 
     observer.observe(targetNode, config);
 
