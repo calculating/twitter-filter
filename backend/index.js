@@ -77,7 +77,8 @@ fastify.get("/login/twitter", function handler(req, reply) {
       };
       fastify.log.info(req.session.oauth);
       return reply.redirect(
-        "https://twitter.com/oauth/authenticate?oauth_token=" + oauth_token
+        // "The GET oauth/authorize endpoint is used instead of GET oauth/authenticate. [for oauth 1.0a]"
+        "https://twitter.com/oauth/authorize?oauth_token=" + oauth_token
       );
     }
   });
