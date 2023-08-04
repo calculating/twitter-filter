@@ -13,7 +13,7 @@ button.feedback-button {
 }
 
 div.modalWrapper {
-    font-family: "Arial" sans-serif;
+    font-family: 'TwitterChirp', sans-serif;
     position: fixed;
     top: 0;
     left: 0;
@@ -44,7 +44,9 @@ div.overlay {
 }
 
 textarea.feedback-input {
-    padding: 0.75rem 1.5rem;
+    font-family: inherit;
+    font-size: 15px;
+    padding: 1rem 1.5rem;
     height: 10rem;
     width: calc(100% - 3rem);
 }
