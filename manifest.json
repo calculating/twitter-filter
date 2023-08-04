@@ -3,12 +3,18 @@
   "name": "twilter",
   "version": "1.0",
   "description": "foobar",
-  "content_scripts": [{
-    "matches": ["https://*.twitter.com/*"],
-    "css": ["css/styles.css"],
-    "js": ["scripts/content.js", "scripts/utils.js"]
-  }],
-  "action" : {
-    "default_popup" : "popup.html"
-}
+  "content_scripts": [
+    {
+      "matches": ["https://*.twitter.com/*"],
+      "css": ["css/styles.css"],
+      "js": [
+        "scripts/utils.js",
+        "scripts/processTweet.js",
+        "scripts/content.js"
+      ]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
 }
