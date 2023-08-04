@@ -8,13 +8,14 @@ function checkall() {
 
 function feedback(newpref) {
     systemPrompt += '\n- ' + newpref;
-    localStorage.setItem('systemprompt', systemPrompt);
+    localStorage.setItem(SYSTEM_PROMPT_KEY, systemPrompt);
     checkall();
 }
 
 function addMultishotPrompt(newpref) {
-    multishotPrompt.push(newpref)
-    localStorage.setItem('multishotprompt', JSON.stringify(multishotPrompt));
+    // newPref: {role: string, content: string}[]
+    multishotPrompt = [...multishotPrompt, ...newpref]
+    localStorage.setItem(MULTISHOT_PROMPT_KEY, JSON.stringify(multishotPrompt));
     checkall();
 }
 

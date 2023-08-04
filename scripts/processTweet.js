@@ -1,13 +1,14 @@
 function processTweet(element) {
-    const tweetText = element.querySelector("div[data-testid='tweetText']").textContent
-    const author = element.querySelector("div[data-testid='User-name']").textContent
+    const hasText = !!element.querySelector("div[data-testid='tweetText']")
+    const tweetText = hasText ? element.querySelector("div[data-testid='tweetText']").textContent : ""
+    const author = element.querySelector("div[data-testid='User-Name']").textContent
     const postText = tweetText + "\n\n - " + author
     const hasImage = !!element.querySelector("div[data-testid='tweetPhoto']") // also grabs videos.
     // const imageUrl = hasImage ? element.querySelector("div[data-testid='tweetPhoto']").querySelector("img").src : null
 
     stylizeTweet(element, postText)
     saveTweet(element)
-    filterTweet(element, postT, hasImage)
+    filterTweet(element, postText, hasImage)
 }
 
 function stylizeTweet(element, postText) {
@@ -21,8 +22,7 @@ function stylizeTweet(element, postText) {
 
     b.onclick = (event) => {
         checkedTweets[postText] = "FILTER"
-        element.style.backgroundColor = red;
-        element.style.height = "5px";
+        markTweetAsFiltered(element)
 
         // open the feedback modal if shift is not pressed.
         if (!event.shiftKey) createFeedbackModal(elementClone)
@@ -63,17 +63,23 @@ function filterTweet(element, postText, hasImage) {
         if (checkedTweets[postText] === "FILTER") {
             markTweetAsFiltered(element)
         } else if (checkedTweets[postText] === "PASS") {
-            element.style.backgroundColor = blue;
+            element.style.backgroundColor = BLUE;
         } else if (checkedTweets[postText] === "PENDING") {
-            element.style.backgroundColor = yellow;
+            element.style.backgroundColor = YELLOW;
         } else {
-            console.log("bad. checked tweet is not 'FILTER' or 'PASS' or 'PENDING'")
+            console.warn("The following tweet is stored as either 'FILTER', 'PASS', or 'PENDING':\n", postText)
         }
         return;
     }
-    checkedTweets[postText] = "PENDING"
 
-    element.style.backgroundColor = yellow;
+    checkedTweets[postText] = "PENDING"
+    element.style.backgroundColor = YELLOW;
+
+    const prompt = [
+        { "role": "system", "content": systemPrompt },
+        ...multishotPrompt,
+        { 'role': 'user', 'content': postText + hasImage ? '\n\n[IMAGE]' : '' }
+    ]
 
     response = fetch('https://api.nerdsniper.net/api/chat', {
         method: 'POST',
@@ -82,17 +88,24 @@ function filterTweet(element, postText, hasImage) {
         },
         body: JSON.stringify({
             'model': 'gpt-3.5-turbo',
-            'messages': [{ "role": "system", "content": systemPrompt }].concat(multishotPrompt).concat([{ 'role': 'user', 'content': postText + hasImage ? '\n\n[IMAGE]' : '' }]),
+            'messages': prompt,
             'temperature': 0.7
         })
     }).then(response => response.json()).then(
         data => {
-            if (data.choices[0].message.content == 'FILTER') {
+            if (!data.choices) {
+                console.log("The API returned no data, probably 429 rate limit.")
+                return;
+            }
+            const reply = data.choices[0].message.content
+            if (reply === 'FILTER') {
                 markTweetAsFiltered(element)
                 checkedTweets[postText] = "FILTER"
-            } else {
-                element.style.backgroundColor = blue;
+            } else if (reply === 'PASS') {
+                element.style.backgroundColor = BLUE;
                 checkedTweets[postText] = "PASS"
+            } else {
+                console.warn("For the following tweet, GPT gave a response that was neither 'FILTER' nor 'PASS':\n", postText)
             }
         }
     ).catch((error) => {
@@ -101,14 +114,17 @@ function filterTweet(element, postText, hasImage) {
 }
 
 function markTweetAsFiltered(element) {
-    element.style.backgroundColor = red;
-    element.onmouseover = () => {
-        element.style.height = "auto";
-    }
-    element.onmouseleave = () => {
-        element.style.height = "5px";
-    }
-    // comment out the following line for test mode (not delete filtered tweets just make them red)
+    element.style.backgroundColor = RED;
+
+    // uncomment following lines for testing: hover over the tweet to see the full text.
+    // element.onmouseover = () => {
+    //     element.style.height = "auto";
+    // }
+    // element.onmouseleave = () => {
+    //     element.style.height = "5px";
+    // }
+
+    // comment out the following line for testing (not delete filtered tweets just make them red)
     element.style.height = '5px';
 }
 

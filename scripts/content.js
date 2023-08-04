@@ -1,15 +1,18 @@
+const SYSTEM_PROMPT_KEY = "system-prompt";
+const MULTISHOT_PROMPT_KEY = "multishot-prompt";
+
 function start() {
-    if (localStorage.getItem('systemprompt') == null) {
-        localStorage.setItem('systemprompt', `Given the following preferences, mark Tweets as either PASS or FILTER, where filtered Tweets will be removed from the user's feed.\n\nPreferences:\n- like: big news about physics\n- dislike: non-substantive content, opinions/questions\n- like: posts sharing ai research papers\n- dislike: nearly anything cryptocurrency related, unless it's particularly interesting from a mathematics or cryptography perspective\n- err on the side of passing posts that don't have enough context\n- filter posts that are social in essence, about someone's personal life\n- in general, if you don't learn anything new about actual things in the world from a tweet, it should be filtered. For example, "this is going to be the most chaotic decade in human history" doesn't actually contain any substative information.\n- No rhetorical question tweets.\n- no promotional tweets\n- nothing that seems like a clickbaity list, i.e. "THESE 5 SIMPLE TRICKS WILL MAKE YOU LITTERALLY MAGIC"`);
+    if (localStorage.getItem(SYSTEM_PROMPT_KEY) == null) {
+        localStorage.setItem(SYSTEM_PROMPT_KEY, `Given the following preferences, mark Tweets as either PASS or FILTER, where filtered Tweets will be removed from the user's feed.\n\nPreferences:\n- like: big news about physics\n- dislike: non-substantive content, opinions/questions\n- like: posts sharing ai research papers\n- dislike: nearly anything cryptocurrency related, unless it's particularly interesting from a mathematics or cryptography perspective\n- err on the side of passing posts that don't have enough context\n- filter posts that are social in essence, about someone's personal life\n- in general, if you don't learn anything new about actual things in the world from a tweet, it should be filtered. For example, "this is going to be the most chaotic decade in human history" doesn't actually contain any substative information.\n- No rhetorical question tweets.\n- no promotional tweets\n- nothing that seems like a clickbaity list, i.e. "THESE 5 SIMPLE TRICKS WILL MAKE YOU LITTERALLY MAGIC"`);
     }
 
-    if (localStorage.getItem('multishotprompt') == null) {
-        localStorage.setItem('multishotprompt', JSON.stringify([]));
+    if (localStorage.getItem(MULTISHOT_PROMPT_KEY) == null) {
+        localStorage.setItem(MULTISHOT_PROMPT_KEY, JSON.stringify([]));
     }
 
     // INITIATE GLOBAL VARIABLES
-    systemPrompt = localStorage.getItem('systemprompt');
-    multishotPrompt = JSON.parse(localStorage.getItem("multishotprompt"))
+    systemPrompt = localStorage.getItem(SYSTEM_PROMPT_KEY);
+    multishotPrompt = JSON.parse(localStorage.getItem(MULTISHOT_PROMPT_KEY))
 
     IS_LIGHT_MODE = document.head.querySelector("[name~=theme-color][content]").content === "#FFFFFF"
     RED = IS_LIGHT_MODE ? "#ff9999" : "#660000"
@@ -46,7 +49,8 @@ function start() {
         subtree: true,  // Will watch all descendants of the target
     };
 
-    const targetNode = document.querySelector('div[aria-label="Timeline: Your Home Timeline"]');
+    const targetNode = document.querySelector("body");
+    // const targetNode = document.querySelector('div[aria-label="Timeline: Your Home Timeline"]'); // doesn't work for some reason
 
     observer.observe(targetNode, config);
 
