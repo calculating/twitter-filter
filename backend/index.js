@@ -4,118 +4,218 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import fastifyCookie from "@fastify/cookie";
 import fastifySession from "@fastify/session";
+import fastifyStatic from "@fastify/static";
+import fastifyView from "@fastify/view";
 import fetch from "node-fetch";
-import OAuth from "oauth";
+import OAuth from "./oauth-utils.js";
+import Stripe from "stripe";
+import path from "path";
+import ejs from "ejs";
+import { fileURLToPath } from "url";
 
 const fastify = Fastify({ logger: true });
+const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 sqlite3.verbose();
 
 // @fastify/env wasn't working well lol
 fastify.config = process.env;
-["TWITTER_CONSUMER_KEY", "TWITTER_CONSUMER_SECRET", "OAUTH_CALLBACK"].forEach(
-  (k) => {
-    if (!fastify.config[k]) {
-      fastify.log.error(`Missing config: ${k}`);
-      process.exit(1);
-    }
+["TWITTER_CONSUMER_KEY", "TWITTER_CONSUMER_SECRET", "HOSTNAME"].forEach((k) => {
+  if (!fastify.config[k]) {
+    fastify.log.error(`Missing config: ${k}`);
+    process.exit(1);
   }
-);
+});
 
 fastify.register(cors, {
   origin: "https://twitter.com",
   methods: ["GET", "POST"], // replace with the methods you want to allow
 });
 
+fastify.register(fastifyStatic, {
+  root: path.join(dirname, "public"),
+  prefix: "/",
+});
 fastify.register(fastifyCookie);
 fastify.register(fastifySession, {
   secret: fastify.config.SESSION_SECRET,
   cookie: { secure: false }, // support localhost
 });
+fastify.register(fastifyView, {
+  engine: { ejs: ejs },
+  root: path.join(dirname, "views"),
+});
 
-const oa = new OAuth.OAuth(
+const stripe = Stripe(fastify.config.STRIPE_SECRET_KEY);
+
+const oa = new OAuth(
   "https://api.twitter.com/oauth/request_token",
   "https://api.twitter.com/oauth/access_token",
   fastify.config.TWITTER_CONSUMER_KEY,
   fastify.config.TWITTER_CONSUMER_SECRET,
   "1.0A",
-  fastify.config.OAUTH_CALLBACK,
+  fastify.config.HOSTNAME + "/callback",
   "HMAC-SHA1"
 );
 
 let db;
 
-fastify.get("/", function (req, reply) {
-  if (!req.session.oauth?.access_token) {
-    return reply.redirect("/login/twitter");
+fastify.get("/", async function (req, reply) {
+  // TODO: Ugly how we make another request after the one in /login/twitter
+  try {
+    const [raw_data, _res] = await oa.get(
+      "https://api.twitter.com/1.1/account/verify_credentials.json",
+      req.session.oauth.access_token,
+      req.session.oauth.access_token_secret
+    );
+    const data = JSON.parse(raw_data);
+
+    // Get payment info from database from data.id_str
+    const user = await db.get(
+      "SELECT * FROM users WHERE twitter_id = ?",
+      data.id_str
+    );
+
+    // Get subscription info from Stripe
+    const subscription =
+      user && user.stripe_subscription_id
+        ? await stripe.subscriptions.retrieve(user.stripe_subscription_id)
+        : null;
+
+    return reply.view("index.ejs", { data: data, subscription: subscription });
+  } catch (error) {
+    fastify.log.error(error);
+    return reply.view("index.ejs", { data: null });
   }
-
-  oa.get(
-    "https://api.twitter.com/1.1/account/verify_credentials.json",
-    req.session.oauth.access_token,
-    req.session.oauth.access_token_secret,
-    (error, data, _res) => {
-      if (error) {
-        fastify.log.error(error);
-        return reply.send("Authentication Failure!");
-      } else {
-        const parsedData = JSON.parse(data);
-        fastify.log.info(parsedData);
-        return reply.send(`You are signed in: ${parsedData.screen_name}`);
-      }
-    }
-  );
 });
 
-fastify.get("/login/twitter", function handler(req, reply) {
-  oa.getOAuthRequestToken((error, oauth_token, oauth_token_secret, _res) => {
-    if (error) {
-      fastify.log.error(error);
-      return reply.send("Authentication Failed!");
-    } else {
-      req.session.oauth = {
-        token: oauth_token,
-        token_secret: oauth_token_secret,
-      };
-      fastify.log.info(req.session.oauth);
-      return reply.redirect(
-        // "The GET oauth/authorize endpoint is used instead of GET oauth/authenticate. [for oauth 1.0a]"
-        "https://twitter.com/oauth/authorize?oauth_token=" + oauth_token
-      );
-    }
-  });
+fastify.get("/login/twitter", async function handler(req, reply) {
+  try {
+    const [oauth_token, oauth_token_secret, _res] =
+      await oa.getOAuthRequestToken();
+    req.session.oauth = {
+      token: oauth_token,
+      token_secret: oauth_token_secret,
+    };
+    fastify.log.info(req.session.oauth);
+    // "The GET oauth/authorize endpoint is used instead of GET oauth/authenticate. [for oauth 1.0a]"
+    return reply.redirect(
+      "https://twitter.com/oauth/authorize?oauth_token=" + oauth_token
+    );
+  } catch (error) {
+    fastify.log.error(error);
+    return reply.send("Authentication Failed!");
+  }
 });
 
-fastify.get("/callback", function (req, reply) {
+fastify.get("/callback", async function (req, reply) {
   if (req.session.oauth) {
     req.session.oauth.verifier = req.query.oauth_verifier;
     const oauth = req.session.oauth;
 
-    // TODO: Promisfy and async this.
-    oa.getOAuthAccessToken(
-      oauth.token,
-      oauth.token_secret,
-      oauth.verifier,
-      (error, oauth_access_token, oauth_access_token_secret, results) => {
-        if (error) {
-          fastify.log.error(error);
-          return reply.send("Authentication Failure!");
-        } else {
-          req.session.oauth.access_token = oauth_access_token;
-          req.session.oauth.access_token_secret = oauth_access_token_secret;
-          fastify.log.info(results, req.session.oauth);
+    try {
+      // TODO: Promisfy and async this.
+      const [oauth_access_token, oauth_access_token_secret, results] =
+        await oa.getOAuthAccessToken(
+          oauth.token,
+          oauth.token_secret,
+          oauth.verifier
+        );
 
-          // you might want to start using the Access Token to make authenticated requests to the user's Twitter account at this point
+      req.session.oauth.access_token = oauth_access_token;
+      req.session.oauth.access_token_secret = oauth_access_token_secret;
+      fastify.log.info(results, req.session.oauth);
 
-          return reply.redirect("/");
-        }
-      }
-    );
+      const [data, _res] = await oa.get(
+        "https://api.twitter.com/1.1/account/verify_credentials.json",
+        req.session.oauth.access_token,
+        req.session.oauth.access_token_secret
+      );
+      const parsedData = JSON.parse(data);
+      req.session.user = {
+        id_str: parsedData.id_str,
+        username: parsedData.screen_name,
+      };
+
+      // Store user in database
+      // (Not storing more than id to avoid issues with multiple sources of truth, e.g. when user info changes.)
+      await db.run(
+        "INSERT OR IGNORE INTO users (twitter_id) VALUES (?)",
+        parsedData.id_str
+      );
+
+      return reply.redirect("/");
+    } catch (error) {
+      fastify.log.error(error);
+      return reply.send("Authentication Failure!");
+    }
   } else {
     return reply.send("you're not supposed to be here.");
   }
 });
 
+fastify.get("/stripe", async function (req, reply) {
+  // check that they're logged in, if not, log them in first
+  if (!req.session.user) {
+    // TODO: Redirect back to here immediately somehow
+    return reply.redirect("/login/twitter");
+  }
+
+  const session = await stripe.checkout.sessions.create({
+    line_items: [{ price: fastify.config.STRIPE_PRICE_ID, quantity: 1 }],
+    mode: "subscription",
+    success_url: `${fastify.config.HOSTNAME}/stripe/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${fastify.config.HOSTNAME}/`,
+  });
+
+  reply.redirect(303, session.url);
+});
+
+fastify.get("/stripe/success", async function (req, reply) {
+  // SECURITY: The session_id may be spoofed by a malicious user in order to steal someone else's subscription. We handle this by making the users table unique over subscription & customer ids.
+
+  if (!req.session.user) {
+    // TODO: use middleware for this
+    return reply.redirect("/login/twitter");
+  }
+
+  // Store checkout session id in database with the user
+  const session = await stripe.checkout.sessions.retrieve(req.query.session_id);
+
+  // Update the database with the customer and subscription ids
+  await db.run(
+    "UPDATE users SET stripe_customer_id = ?, stripe_subscription_id = ? WHERE twitter_id = ?",
+    session.customer,
+    session.subscription,
+    req.session.user.id_str
+  );
+
+  // return reply.send(JSON.stringify(session));
+  return reply.redirect("/");
+});
+
+fastify.get("/stripe/cancel", async function (req, reply) {
+  if (!req.session.user) {
+    return reply.redirect("/login/twitter");
+  }
+
+  const { stripe_subscription_id } = await db.get(
+    `SELECT stripe_subscription_id FROM users WHERE twitter_id = ?`,
+    req.session.user.id_str
+  );
+
+  // Dumb way, cancel immediately
+  await stripe.subscriptions.cancel(stripe_subscription_id);
+
+  // Smart way, can do later
+  // await stripe.subscriptions.update(stripe_subscription_id, {
+  //   cancel_at_period_end: true,
+  // });
+
+  return reply.send(`Subscription ${stripe_subscription_id} canceled.`);
+});
+
+// FIXME: Insane security risk, exposing our database of user data to the world!
 fastify.get("/api/tweets", async function handler(_request, reply) {
   try {
     const tweets = await db.all("SELECT * FROM raw_tweets");
@@ -209,6 +309,13 @@ const initDB = async () => {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       request_json TEXT NOT NULL,
       response_json TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS users (
+      twitter_id INTEGER PRIMARY KEY,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      stripe_customer_id VARCHAR UNIQUE, -- stripe customer id, possibly null if not paid
+      stripe_subscription_id VARCHAR UNIQUE -- stripe subscription id, possibly null if not paid
     );
   `);
 };

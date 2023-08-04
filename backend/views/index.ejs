@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Nerdsniper</title>
+    <link rel="stylesheet" href="/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+
+  <body>
+    <h1>Nerdsniper</h1>
+
+    <% if (data) { %>
+      <p>Logged in as <%= data.screen_name %></p>
+
+      <% if (subscription) { %>
+        <p>Subscription status: <%= subscription.status %></p>
+        <% if (subscription.status === 'active') { %>
+          <p>Next payment due: <%= (new Date(subscription.current_period_end)).toDateString() %></p>
+          <p><a href="/stripe/cancel">Cancel subscription</a></p>
+        <% } %>
+      <% } %>
+
+      <% if (!subscription || subscription.status !== "active") { %>
+        <p><a href="/stripe">Purchase a subscription</a></p>
+      <% } %>
+    <% } %>
+
+    <% if (!data) { %>
+      <p>Not logged in.  <a href="/login/twitter">Login with Twitter?</a></p>
+    <% } %>
+  </body>
+</html>
