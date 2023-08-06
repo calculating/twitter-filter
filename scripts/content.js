@@ -15,6 +15,7 @@ function start() {
     multishotPrompt = JSON.parse(localStorage.getItem(MULTISHOT_PROMPT_KEY))
 
     IS_LIGHT_MODE = document.head.querySelector("[name~=theme-color][content]").content === "#FFFFFF"
+    IS_LIGHT_MODE = false
     RED = IS_LIGHT_MODE ? "#ff9999" : "#660000"
     YELLOW = IS_LIGHT_MODE ? "#fffdb5" : "#4B4901"
     BLUE = IS_LIGHT_MODE ? "#b5e9ff" : "#00354B"
