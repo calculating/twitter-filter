@@ -354,7 +354,7 @@ fastify.get<{ Querystring: { offset?: number; limit?: number } }>(
       offset
     );
 
-    return reply.view("debug.ejs", { tweets, apiCalls, users });
+    return reply.view("debug.ejs", { tweets, apiCalls, users, limit, offset });
   }
 );
 

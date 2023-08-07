@@ -18,6 +18,8 @@
       <li><a href="#tweets">Tweets</a></li>
     </ul>
 
+    <p>You can also navigate to the <a href="<%= `/debug?offset=${offset+limit}&limit=${limit}` %>">next page</a> or <a href="<%= `/debug?offset=${offset}&limit=${limit*2}` %>">double the results per page</a></p>
+
     <% const showJSON = (j) => JSON.stringify(j, null, 2).replaceAll("\\n", "\n").replaceAll('\\"', '"') %>
 
     <h2 id="api-calls">API calls</h2>
