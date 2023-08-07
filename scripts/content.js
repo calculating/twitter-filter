@@ -1,8 +1,7 @@
 const SYSTEM_PROMPT_KEY = "system-prompt";
 const MULTISHOT_PROMPT_KEY = "multishot-prompt";
 
-const DEFAULT_SYSTEM_PROMPT = `
-Given preferences by the user, mark new Tweets as either "block", "pass", or "unsure". Default to "pass" unless there is a specific reason to block based on preferences provided by the user. Use "unsure" only if a Tweet may fit a blocking criteria but there is ambiguity. Respond only with "block", "pass", or "unsure", with no additional text. If a post that the user has already provided feedback on appears again, simply copy the previous user label.
+const DEFAULT_SYSTEM_PROMPT = `Given preferences by the user, mark new Tweets as either "block", "pass", or "unsure". Default to "pass" unless there is a specific reason to block based on preferences provided by the user. Use "unsure" only if a Tweet may fit a blocking criteria but there is ambiguity. Respond only with "block", "pass", or "unsure", with no additional text. If a post that the user has already provided feedback on appears again, simply copy the previous user label.
 
 Preferences:`
 
@@ -79,22 +78,27 @@ function start() {
     const input = document.createElement("textarea")
     input.className = "feedback-input"
     input.placeholder = "i dislike anything cryptocurrency related"
-    input.onchange = () => {
-        if (e.key === "Enter") {
+    input.addEventListener("keydown", e => {
+        if (e.key === "Enter" && e.ctrlKey) {
             // add input.value to systemPrompt
             feedback(`- General preference: "${input.value}"`);
             input.value = "";
         }
-    }
+    })
 
     const label = document.createElement("p")
     label.innerHTML = "What tweets do you want (or don't want) to see?"
     label.className = "feedback-label"
 
+    const descrip = document.createElement("p")
+    descrip.innerHTML = "Ctrl+enter to submit"
+    descrip.className = "feedback-descrip"
+
     const wrapper = document.createElement("div")
     wrapper.className = "feedback-wrapper"
     wrapper.appendChild(label)
     wrapper.appendChild(input)
+    wrapper.appendChild(descrip)
     wrapper.appendChild(resetButton)
 
     document.body.appendChild(wrapper)
