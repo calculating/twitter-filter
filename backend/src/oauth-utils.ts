@@ -1,9 +1,15 @@
 import OAuth from "oauth";
+import type { ClientRequest, IncomingMessage } from "http";
 
 // Promisify the OAuth library.
 
 export default class extends OAuth.OAuth {
-  async getOAuthAccessToken(oauth_token, oauth_token_secret, oauth_verifier) {
+  // @ts-ignore due to method override having different signature
+  async getOAuthAccessToken(
+    oauth_token: string,
+    oauth_token_secret: string,
+    oauth_verifier: string
+  ): Promise<[string, string, any]> {
     return new Promise((resolve, reject) => {
       super.getOAuthAccessToken(
         oauth_token,
@@ -17,7 +23,7 @@ export default class extends OAuth.OAuth {
     });
   }
 
-  async getOAuthRequestToken() {
+  async getOAuthRequestToken(): Promise<[string, string, ClientRequest]> {
     return new Promise((resolve, reject) => {
       super.getOAuthRequestToken(
         (error, oauth_token, oauth_token_secret, res) =>
@@ -28,11 +34,17 @@ export default class extends OAuth.OAuth {
     });
   }
 
-  async get(url, access_token, access_token_secret) {
+  // @ts-ignore due to method override having different signature
+  async get(
+    url: string,
+    access_token: string,
+    access_token_secret: string
+  ): Promise<[string, IncomingMessage | undefined]> {
     return new Promise((resolve, reject) => {
-      super.get(url, access_token, access_token_secret, (error, data, res) =>
-        error ? reject(error) : resolve([data, res])
-      );
+      super.get(url, access_token, access_token_secret, (error, data, res) => {
+        if (typeof data !== "string") throw new Error("data is not a string");
+        error ? reject(error) : resolve([data, res!]);
+      });
     });
   }
 }
