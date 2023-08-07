@@ -12,27 +12,58 @@ function processTweet(element) {
     filterTweet(element, postText, hasImage)
 }
 
+
 function stylizeTweet(element, postText, hasImage) {
-    const elementClone = element.cloneNode(true)
+    console.log('stylizing tweet')
+    // check if the tweet already has 'button' elements, if so pass
+    if (element.querySelector("button")) return;
 
-    // when you hover over each tweet, there is a button that u can press to enter feedback.
-    const b = document.createElement("button")
-    b.style.display = "none"
-    b.className = "feedback-button"
-    b.innerHTML = xIcon
+    let row = element.querySelector('[role="group"]')
+    let plusSVG = `
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="black" stroke-width="2"/>
+            <line x1="12" y1="6" x2="12" y2="18" stroke="black" stroke-width="2"/>
+            <line x1="6" y1="12" x2="18" y2="12" stroke="black" stroke-width="2"/>
+        </svg>`;
+    
+    let plusButton = document.createElement('button');
+    plusButton.innerHTML = plusSVG;              // Remove button border
+    
+    // SVG for minus button
+    let minusSVG = `
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="black" stroke-width="2"/>
+            <line x1="6" y1="12" x2="18" y2="12" stroke="black" stroke-width="2"/>
+        </svg>`;
+    
+    let minusButton = document.createElement('button');
+    minusButton.innerHTML = minusSVG;         // Remove button border
+    
+    // Function to replace buttons with an input box
+    function replaceWithInput() {
+        row.removeChild(plusButton);
+        row.removeChild(minusButton);
+        
+        let inputBox = document.createElement('input');
+        inputBox.type = 'text';
+        
+        // Add event listener for the 'keydown' event
+        inputBox.addEventListener('keydown', function(event) {
+            // Check if the pressed key was "Enter"
+            if (event.key === "Enter") {
+                // Log the input value
+                console.log(inputBox.value);
+                feedback(inputBox.value);
+                // remove the feedback box
+                row.removeChild(inputBox);
+            }
+        });
 
-    b.onclick = (event) => {
-        checkedTweets[postText] = "FILTER"
-        markTweetAsFiltered(element)
+        row.appendChild(inputBox);
+    }
 
-        // open the feedback modal if shift is not pressed.
-        if (!event.shiftKey) {
-            elementClone.className += " cloned-modal-tweet"
-            elementClone.style.backgroundColor = "white"
-            createFeedbackModal(elementClone, hasImage)
-        }
-
-        // add the tweet to the multishot prompt as a filtered tweet.
+    function minused() {
+        replaceWithInput();
         addMultishotPrompt([
             {
                 "role": "user",
@@ -44,11 +75,30 @@ function stylizeTweet(element, postText, hasImage) {
             },
         ])
     }
+    function plussed() {
+        replaceWithInput();
+        addMultishotPrompt([
+            {
+                "role": "user",
+                "content": postText
+            },
+            {
+                "role": "assistant",
+                "content": "PASS"
+            },
+        ])
+    }
 
-    element.appendChild(b)
-    element.onmouseover = () => b.style.display = "block"
-    element.onmouseleave = () => b.style.display = "none"
+    // Add event listeners to the buttons
+    plusButton.addEventListener('click', plussed);
+    minusButton.addEventListener('click', minused);
+    
+    // Append buttons to the container
+    row.appendChild(plusButton);
+    row.appendChild(minusButton);
 }
+
+
 
 function saveTweet(element) {
     // Save tweet to database of spyware :))
@@ -131,75 +181,4 @@ function markTweetAsFiltered(element) {
 
     // comment out the following line for testing (not delete filtered tweets just make them red)
     element.style.height = '5px';
-}
-
-function createFeedbackModal(tweetElementClone, hasImage) {
-    const modalWrapper = document.createElement("div")
-    const modal = document.createElement("div")
-    modalWrapper.className = "modalWrapper"
-    modal.className = "modal"
-    modalWrapper.appendChild(modal)
-
-    modal.innerHTML = `<h1 class="feedback-title">What's wrong with this tweet?</h1>`
-    modal.innerHTML += `<p class="feedback-description">[chrome extension] will remember your preferences and won't show tweets like this in the future.</p>`
-    modal.innerHTML += `<p class="feedback-description">To avoid this dialogue, hold down shift when deleting tweets</p>`
-
-    // modal.innerHTML += `<div class="feedback-tweet">${tweetInnerHTML}</div>`
-    const tweetWithWrapper = document.createElement("div")
-    tweetWithWrapper.className = "feedback-tweet"
-    tweetWithWrapper.appendChild(tweetElementClone)
-    modal.appendChild(tweetWithWrapper)
-
-    if (hasImage) modal.innerHTML += `<p class="feedback-description" style="margin-top: 0;">Note: the AI can't see images when filtering your tweets (yet)</p>`
-
-    const input = document.createElement("textarea")
-    input.className = "feedback-input"
-    const id = "feedback-input-lskdfjslkd"
-    input.id = id
-    input.placeholder = "i dislike nearly anything cryptocurrency related, unless it's particularly interesting from a mathematics or cryptography perspective"
-
-    function closeModal() {
-        document.body.removeChild(modalWrapper)
-        document.body.removeChild(overlay)
-        document.removeEventListener("click", closeModalOnClickingBody)
-    }
-
-    function handleSubmit(feedbackValue) {
-        feedback(feedbackValue);
-        closeModal()
-    }
-
-    input.addEventListener('onchange', function (e) {
-        if (e.key === 'Enter' && e.ctrlKey) {
-            handleSubmit(this.value)
-        } else if (e.key === "Escape") {
-            closeModal()
-        }
-    });
-
-    modal.appendChild(input)
-    modal.innerHTML += `<p class="feedback-description">Ctrl+enter to submit</p>`
-
-    // create a button to submit the feedback.
-    const submitButton = document.createElement("button")
-    submitButton.className = "feedback-submit"
-    submitButton.innerText = "Submit"
-    submitButton.onclick = () => handleSubmit(input.value)
-    modal.appendChild(submitButton)
-
-    document.body.appendChild(modalWrapper)
-
-    const overlay = document.createElement("div")
-    overlay.className = "overlay"
-    document.body.appendChild(overlay)
-
-    const closeModalOnClickingBody = (event) => {
-        // if not clicking the modal or a child of the modal, close the modal.
-        if (!modal.contains(event.target)) {
-            closeModal()
-        }
-    }
-
-    waitForAndFocusElement("#" + id)
-    setTimeout(() => document.addEventListener("click", closeModalOnClickingBody), 100)
 }
