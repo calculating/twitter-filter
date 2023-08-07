@@ -147,7 +147,7 @@ function filterTweet(element, postText, hasImage) {
         body: JSON.stringify({
             'model': 'gpt-3.5-turbo',
             'messages': prompt,
-            'temperature': 0.7
+            'temperature': 0
         })
     }).then(response => response.json()).then(
         data => {
@@ -164,7 +164,7 @@ function filterTweet(element, postText, hasImage) {
                 element.style.height = "auto";
                 checkedTweets[postText] = "PASS"
             } else {
-                console.warn("For the following tweet, GPT gave a response that was neither 'FILTER' nor 'PASS':\n", postText)
+                console.error("For the following tweet, GPT gave a response that was neither 'FILTER' nor 'PASS':\n", postText)
             }
         }
     ).catch((error) => {
