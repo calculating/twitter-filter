@@ -129,6 +129,8 @@ function filterTweet(element, postText, hasImage) {
             markTweetAsPassed(element)
         } else if (checkedTweets[postText] === "pending") {
             markTweetAsPending(element)
+        } else if (checkedTweets[postText] === "unsure" || checkedTweets[postText] === "bad-gpt-response") {
+            markTweetAsUnsure(element);
         } else {
             console.warn(`The following tweet is stored as neither ${gptOptions.map(x => `"${x}"`).join(" nor ")}:\n`, postText)
         }
@@ -171,9 +173,9 @@ function filterTweet(element, postText, hasImage) {
                 markTweetAsUnsure(element);
                 checkedTweets[postText] = "unsure";
             } else {
-                // console.error(`For the following tweet, GPT gave the response ${reply}. Neither ${gptOptions.join(" nor ")}:\n`, postText)
-                console.error("GPT gave a response of: " + reply)
-                element.style.backgroundColor = "gray"
+                console.error(`For the following tweet, GPT gave the response "${reply}" :\n`, postText);
+                markTweetAsUnsure(element);
+                checkedTweets[postText] = "bad-gpt-response";
             }
         }
     ).catch((error) => {
