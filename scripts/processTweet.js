@@ -48,7 +48,7 @@ function stylizeTweet(element, postText, hasImage) {
     minusButton.style.marginLeft = "8px";
 
     // Function to replace buttons with an input box
-    function replaceWithInput() {
+    function replaceWithInput(operation) {
         row.removeChild(plusButton);
         row.removeChild(minusButton);
 
@@ -61,7 +61,8 @@ function stylizeTweet(element, postText, hasImage) {
             if (event.key === "Enter") {
                 // Log the input value
                 console.log(inputBox.value);
-                feedback(inputBox.value);
+                const feedbackPrefix = operation === "minus" ? "Marked block if: " : "Marked pass if: ";
+                feedback(feedbackPrefix + inputBox.value);
                 // remove the feedback box
                 row.removeChild(inputBox);
             }
@@ -71,7 +72,7 @@ function stylizeTweet(element, postText, hasImage) {
     }
 
     function minused() {
-        replaceWithInput();
+        replaceWithInput("minus");
         addMultishotPrompt([
             {
                 "role": "user",
@@ -84,7 +85,7 @@ function stylizeTweet(element, postText, hasImage) {
         ], false)
     }
     function plussed() {
-        replaceWithInput();
+        replaceWithInput("plus");
         addMultishotPrompt([
             {
                 "role": "user",
