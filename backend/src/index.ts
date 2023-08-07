@@ -332,11 +332,11 @@ fastify.post("/api/chat", async function handler(request, reply) {
   return json;
 });
 
-fastify.get<{ Querystring: { offset?: number; limit?: number } }>(
+fastify.get<{ Querystring: { offset?: string; limit?: string } }>(
   "/debug",
   async function handler(request, reply) {
-    const limit = request.query.limit || 100;
-    const offset = request.query.offset || 0;
+    const limit = parseInt(request.query.limit || "") || 100;
+    const offset = parseInt(request.query.offset || "") || 0;
 
     const tweets = await db.all(
       "SELECT * FROM raw_tweets ORDER BY created_at DESC LIMIT ? OFFSET ?",
