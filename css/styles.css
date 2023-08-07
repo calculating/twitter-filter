@@ -48,6 +48,11 @@ p.feedback-label {
     font-weight: bold;
 }
 
+p.feedback-descrip {
+    opacity: 30%;
+    font-size: x-small;
+}
+
 button.reset-button {
     padding: 1rem 2rem;
     border-radius: 2rem;

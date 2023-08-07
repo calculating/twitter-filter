@@ -79,22 +79,27 @@ function start() {
     const input = document.createElement("textarea")
     input.className = "feedback-input"
     input.placeholder = "i dislike anything cryptocurrency related"
-    input.onchange = () => {
-        if (e.key === "Enter") {
+    input.addEventListener("keydown", e => {
+        if (e.key === "Enter" && e.ctrlKey) {
             // add input.value to systemPrompt
             feedback(`- General preference: "${input.value}"`);
             input.value = "";
         }
-    }
+    })
 
     const label = document.createElement("p")
     label.innerHTML = "What tweets do you want (or don't want) to see?"
     label.className = "feedback-label"
 
+    const descrip = document.createElement("p")
+    descrip.innerHTML = "Ctrl+enter to submit"
+    descrip.className = "feedback-descrip"
+
     const wrapper = document.createElement("div")
     wrapper.className = "feedback-wrapper"
     wrapper.appendChild(label)
     wrapper.appendChild(input)
+    wrapper.appendChild(descrip)
     wrapper.appendChild(resetButton)
 
     document.body.appendChild(wrapper)
