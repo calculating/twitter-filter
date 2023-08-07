@@ -14,30 +14,38 @@ function processTweet(element) {
 
 
 function stylizeTweet(element, postText, hasImage) {
-    console.log('stylizing tweet')
     // check if the tweet already has 'button' elements, if so pass
     if (element.querySelector("button")) return;
 
+    const twitterIconColor = "#536471"
+
     let row = element.querySelector('[role="group"]')
     let plusSVG = `
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="black" stroke-width="2"/>
-            <line x1="12" y1="6" x2="12" y2="18" stroke="black" stroke-width="2"/>
-            <line x1="6" y1="12" x2="18" y2="12" stroke="black" stroke-width="2"/>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="feedback-button-icon">
+            <circle cx="12" cy="12" r="10" stroke="${twitterIconColor}" stroke-width="2"/>
+            <line x1="12" y1="6" x2="12" y2="18" stroke="${twitterIconColor}" stroke-width="2" stroke-linecap="round" />
+            <line x1="6" y1="12" x2="18" y2="12" stroke="${twitterIconColor}" stroke-width="2" stroke-linecap="round" />
         </svg>`;
 
     let plusButton = document.createElement('button');
-    plusButton.innerHTML = plusSVG;              // Remove button border
+    plusButton.className = "feedback-button"
+    plusButton.innerHTML = plusSVG;
 
     // SVG for minus button
     let minusSVG = `
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="black" stroke-width="2"/>
-            <line x1="6" y1="12" x2="18" y2="12" stroke="black" stroke-width="2"/>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="feedback-button-icon">
+            <circle cx="12" cy="12" r="10" stroke="${twitterIconColor}" stroke-width="2"/>
+            <line x1="6" y1="12" x2="18" y2="12" stroke="${twitterIconColor}" stroke-width="2"/>
         </svg>`;
 
     let minusButton = document.createElement('button');
-    minusButton.innerHTML = minusSVG;         // Remove button border
+    minusButton.className = "feedback-button"
+    minusButton.innerHTML = minusSVG;
+
+    // marginleft of minus should be like 24 - (padding = 8 + 8 = 16) = 8
+    // plus: 16
+    plusButton.style.marginLeft = "16px";
+    minusButton.style.marginLeft = "8px";
 
     // Function to replace buttons with an input box
     function replaceWithInput() {

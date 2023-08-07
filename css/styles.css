@@ -1,15 +1,30 @@
+* {
+    box-sizing: border-box;
+}
+
 button.feedback-button {
     border: none;
-    color: black;
-    height: 4rem;
-    width: 4rem;
-    padding: 0;
+    background-color: transparent;
+    padding: 8px;
     border-radius: 100%;
     cursor: pointer;
-    position: absolute;
-    right: 1rem;
-    top: 1rem;
-    opacity: 20%;
+    transition: ease-in-out 0.2s all;
+    height: calc(8px + 8px + 18px);
+    overflow-y: hidden;
+}
+
+button.feedback-button:hover {
+    /* make svg stroke color the twitter theme color */
+    color: #00acee;
+    background-color: rgba(0, 172, 238, 0.1);
+}
+
+button.feedback-button:hover .feedback-button-icon circle, button.feedback-button:hover .feedback-button-icon line {
+    stroke: #00acee;
+}
+
+svg.feedback-button-icon {
+    overflow: hidden;
 }
 
 div.modalWrapper {
