@@ -144,8 +144,11 @@ function filterTweet(element, postText, hasImage) {
     const prompt = [
         { "role": "system", "content": systemPrompt },
         ...multishotPrompt,
-        { 'role': 'user', 'content': postText + hasImage ? '\n\n[IMAGE]' : '' }
+        { 'role': 'user', 'content': postText + (hasImage ? '\n\n[IMAGE]' : '') }
     ]
+
+    // for debugging
+    // console.log("Prompt: ", prompt)
 
     response = fetch('https://api.nerdsniper.net/api/chat', {
         method: 'POST',
@@ -164,6 +167,10 @@ function filterTweet(element, postText, hasImage) {
                 return;
             }
             const reply = data.choices[0].message.content
+
+            // for debugging
+            // console.log("GPT response: ", reply, "\n\n Tweet: ", postText)
+
             if (reply.match(/block/i)) {
                 markTweetAsBlocked(element);
                 checkedTweets[postText] = "block";

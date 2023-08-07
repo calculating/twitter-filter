@@ -4,21 +4,7 @@ const MULTISHOT_PROMPT_KEY = "multishot-prompt";
 const DEFAULT_SYSTEM_PROMPT = `
 Given preferences by the user, mark new Tweets as either "block", "pass", or "unsure". Default to "pass" unless there is a specific reason to block based on preferences provided by the user. Use "unsure" only if a Tweet may fit a blocking criteria but there is ambiguity. Respond only with "block", "pass", or "unsure", with no additional text.
 
-Preferences:
-
-- Marked block: "no gaming content"
-\`\`\` 
-Elon Musk
-
-@elonmusk
-·
-27m
-Diablo IV is a great game. Nice work by the 
-@Blizzard_Ent
- team!
-\`\`\` 
-
-- General preference: "I only want to see tweets that keep me informed about current events or teach me something new."`
+Preferences:`
 
 const gptOptions = ["block", "pass", "unsure"];
 
@@ -81,9 +67,9 @@ function start() {
     // this is also why. if the user resets their preferences the preference should still exist on the server for our data collection
     resetButton.onclick = () => {
         multishotPrompt = []
-        localStorage.setItem(MULTISHOT_PROMPT_KEY, JSON.stringify(multishotPrompt));
+        localStorage.setItem(MULTISHOT_PROMPT_KEY, JSON.stringify([]));
         systemPrompt = DEFAULT_SYSTEM_PROMPT;
-        localStorage.setItem(SYSTEM_PROMPT_KEY, systemPrompt);
+        localStorage.setItem(SYSTEM_PROMPT_KEY, DEFAULT_SYSTEM_PROMPT);
         checkall();
     }
     resetButton.className = "reset-button"
