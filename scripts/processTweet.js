@@ -59,10 +59,8 @@ function stylizeTweet(element, postText, hasImage) {
         inputBox.addEventListener('keydown', function (event) {
             // Check if the pressed key was "Enter"
             if (event.key === "Enter") {
-                // Log the input value
-                console.log(inputBox.value);
-                const feedbackPrefix = operation === "minus" ? "- Marked block: " : "- Marked pass: ";
-                feedback(feedbackPrefix + `"` + inputBox.value + `"`);
+                const feedbackPrefix = operation === "minus" ? `- Marked : BLOCK` : `- Marked PASS: `;
+                feedback("\n\n" + feedbackPrefix + `"` + inputBox.value + `"` + "\n" + "```\n" + postText + "\n```");
                 // remove the feedback box
                 row.removeChild(inputBox);
             }
@@ -73,29 +71,30 @@ function stylizeTweet(element, postText, hasImage) {
 
     function minused() {
         replaceWithInput("minus");
-        addMultishotPrompt([
-            {
-                "role": "user",
-                "content": postText
-            },
-            {
-                "role": "assistant",
-                "content": "block"
-            },
-        ], false)
+        // addMultishotPrompt([
+        //     {
+        //         "role": "user",
+        //         "content": postText
+        //     },
+        //     {
+        //         "role": "assistant",
+        //         "content": "block"
+        //     },
+        // ], false)
+
     }
     function plussed() {
         replaceWithInput("plus");
-        addMultishotPrompt([
-            {
-                "role": "user",
-                "content": postText
-            },
-            {
-                "role": "assistant",
-                "content": "pass"
-            },
-        ], false)
+        // addMultishotPrompt([
+        //     {
+        //         "role": "user",
+        //         "content": postText
+        //     },
+        //     {
+        //         "role": "assistant",
+        //         "content": "pass"
+        //     },
+        // ], false)
     }
 
     // Add event listeners to the buttons
@@ -141,10 +140,13 @@ function filterTweet(element, postText, hasImage) {
     checkedTweets[postText] = "pending"
     markTweetAsPending(element)
 
+    const withImage = postText + (hasImage ? '\n\n[IMAGE]' : '')
+    const userPrompt = `\`\`\`${withImage}\`\`\` \n\n\nFirst check against user preferences, then respond with either \"pass\", \"block, or \"unsure\". Match user labels for repeated posts."`
+
     const prompt = [
         { "role": "system", "content": systemPrompt },
         ...multishotPrompt,
-        { 'role': 'user', 'content': postText + (hasImage ? '\n\n[IMAGE]' : '') }
+        { 'role': 'user', 'content': userPrompt }
     ]
 
     // for debugging
@@ -159,7 +161,7 @@ function filterTweet(element, postText, hasImage) {
             'model': 'gpt-3.5-turbo',
             'messages': prompt,
             'temperature': 0,
-            'logit_bias':{13271:-50},
+            'logit_bias': { 13271: -50 },
         })
     }).then(response => response.json()).then(
         data => {
@@ -182,7 +184,7 @@ function filterTweet(element, postText, hasImage) {
                 markTweetAsUnsure(element);
                 checkedTweets[postText] = "unsure";
             } else {
-                console.error(`For the following tweet, GPT gave the response "${reply}" :\n`, postText);
+                console.error(`For the following tweet, GPT gave the response "${reply}" : \n`, postText);
                 markTweetAsUnsure(element);
                 checkedTweets[postText] = "bad-gpt-response";
             }
