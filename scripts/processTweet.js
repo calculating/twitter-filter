@@ -141,7 +141,7 @@ function filterTweet(element, postText, hasImage) {
     markTweetAsPending(element)
 
     const withImage = postText + (hasImage ? '\n\n[IMAGE]' : '')
-    const userPrompt = `\`\`\`${withImage}\`\`\` \n\n\nFirst check against user preferences, then respond with either \"pass\", \"block, or \"unsure\". Match user labels for repeated posts."`
+    const userPrompt = `\`\`\`${withImage}\`\`\` \n\n\nFirst check against user preferences, then respond with either \"pass\", \"block, or \"unsure\". Match user labels for repeated posts.`
 
     const prompt = [
         { "role": "system", "content": systemPrompt },
