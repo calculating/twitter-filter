@@ -25,30 +25,30 @@ function stylizeTweet(element, postText, hasImage) {
             <line x1="12" y1="6" x2="12" y2="18" stroke="black" stroke-width="2"/>
             <line x1="6" y1="12" x2="18" y2="12" stroke="black" stroke-width="2"/>
         </svg>`;
-    
+
     let plusButton = document.createElement('button');
     plusButton.innerHTML = plusSVG;              // Remove button border
-    
+
     // SVG for minus button
     let minusSVG = `
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" stroke="black" stroke-width="2"/>
             <line x1="6" y1="12" x2="18" y2="12" stroke="black" stroke-width="2"/>
         </svg>`;
-    
+
     let minusButton = document.createElement('button');
     minusButton.innerHTML = minusSVG;         // Remove button border
-    
+
     // Function to replace buttons with an input box
     function replaceWithInput() {
         row.removeChild(plusButton);
         row.removeChild(minusButton);
-        
+
         let inputBox = document.createElement('input');
         inputBox.type = 'text';
-        
+
         // Add event listener for the 'keydown' event
-        inputBox.addEventListener('keydown', function(event) {
+        inputBox.addEventListener('keydown', function (event) {
             // Check if the pressed key was "Enter"
             if (event.key === "Enter") {
                 // Log the input value
@@ -92,7 +92,7 @@ function stylizeTweet(element, postText, hasImage) {
     // Add event listeners to the buttons
     plusButton.addEventListener('click', plussed);
     minusButton.addEventListener('click', minused);
-    
+
     // Append buttons to the container
     row.appendChild(plusButton);
     row.appendChild(minusButton);
@@ -119,8 +119,10 @@ function filterTweet(element, postText, hasImage) {
             markTweetAsFiltered(element)
         } else if (checkedTweets[postText] === "PASS") {
             element.style.backgroundColor = BLUE;
+            element.style.height = "auto";
         } else if (checkedTweets[postText] === "PENDING") {
             element.style.backgroundColor = YELLOW;
+            element.style.height = "5px";
         } else {
             console.warn("The following tweet is stored as either 'FILTER', 'PASS', or 'PENDING':\n", postText)
         }
@@ -129,6 +131,7 @@ function filterTweet(element, postText, hasImage) {
 
     checkedTweets[postText] = "PENDING"
     element.style.backgroundColor = YELLOW;
+    element.style.height = "5px";
 
     const prompt = [
         { "role": "system", "content": systemPrompt },
@@ -158,6 +161,7 @@ function filterTweet(element, postText, hasImage) {
                 checkedTweets[postText] = "FILTER"
             } else if (reply === 'PASS') {
                 element.style.backgroundColor = BLUE;
+                element.style.height = "auto";
                 checkedTweets[postText] = "PASS"
             } else {
                 console.warn("For the following tweet, GPT gave a response that was neither 'FILTER' nor 'PASS':\n", postText)
