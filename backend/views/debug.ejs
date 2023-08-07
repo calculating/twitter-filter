@@ -18,6 +18,8 @@
       <li><a href="#tweets">Tweets</a></li>
     </ul>
 
+    <% const showJSON = (j) => JSON.stringify(j, null, 2).replaceAll("\\n", "\n").replaceAll('\\"', '"') %>
+
     <h2 id="api-calls">API calls</h2>
     <ol>
       <% for (const call of apiCalls) { %>
@@ -25,8 +27,8 @@
           <ul>
             <li>ID: <%= call.id %></li>
             <li>Created at: <%= new Date(call.created_at) %></li>
-            <li>Request JSON: <pre><%= JSON.stringify(JSON.parse(call.request_json), null, 2) %></pre></li>
-            <li>Response JSON: <pre><%= JSON.stringify(JSON.parse(call.response_json), null, 2) %></pre></li>
+            <li>Request JSON: <pre><%= showJSON(JSON.parse(call.request_json)) %></pre></li>
+            <li>Response JSON: <pre><%= showJSON(JSON.parse(call.response_json)) %></pre></li>
           </ul>
         </li>
       <% } %>
@@ -49,7 +51,7 @@
     <h2 id="tweets">Tweets</h2>
     <ol>
       <% for (const tweet of tweets) { %>
-        <li><pre><%= JSON.stringify(tweet, null, 2) %></pre></li>
+        <li><pre><%= showJSON(tweet, null, 2) %></pre></li>
       <% } %>
     </ol>
   </body>
