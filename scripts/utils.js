@@ -30,7 +30,14 @@ function waitForAndFocusElement(querySelector) {
     }
 };
 
-const getUsername = () => document.querySelector('nav[aria-label="Primary"] a:nth-child(9)').href.match(/\w*$/)[0]
+const getUsername = () => {
+    const profileNavItem = document.querySelector('nav[aria-label="Primary"] a:nth-child(9)')
+    if (!profileNavItem) {
+        console.error("No profile nav item")
+        return null
+    }
+    return profileNavItem.href.match(/\w*$/)[0]
+}
 
 // svg from heroicons.com
 const xIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">

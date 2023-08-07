@@ -1,7 +1,26 @@
 const SYSTEM_PROMPT_KEY = "system-prompt";
 const MULTISHOT_PROMPT_KEY = "multishot-prompt";
 
-const DEFAULT_SYSTEM_PROMPT = `Given the following preferences, mark Tweets as either PASS or FILTER, where filtered Tweets will be removed from the user's feed.\n\nPreferences:\n- like: big news about physics\n- dislike: non-substantive content, opinions/questions\n- like: posts sharing ai research papers\n- dislike: nearly anything cryptocurrency related, unless it's particularly interesting from a mathematics or cryptography perspective\n- err on the side of passing posts that don't have enough context\n- filter posts that are social in essence, about someone's personal life\n- in general, if you don't learn anything new about actual things in the world from a tweet, it should be filtered. For example, "this is going to be the most chaotic decade in human history" doesn't actually contain any substative information.\n- No rhetorical question tweets.\n- no promotional tweets\n- nothing that seems like a clickbaity list, i.e. "THESE 5 SIMPLE TRICKS WILL MAKE YOU LITTERALLY MAGIC"`;
+const DEFAULT_SYSTEM_PROMPT = `
+Given preferences by the user, mark new Tweets as either "block", "pass", or "unsure". Default to "pass" unless there is a specific reason to block based on preferences provided by the user. Use "unsure" only if a Tweet may fit a blocking criteria but there is ambiguity. Respond only with "block", "pass", or "unsure", with no additional text.
+
+Preferences:
+
+- Marked block: "no gaming content"
+\`\`\` 
+Elon Musk
+
+@elonmusk
+·
+27m
+Diablo IV is a great game. Nice work by the 
+@Blizzard_Ent
+ team!
+\`\`\` 
+
+- General preference: I only want to see tweets that keep me informed about current events or teach me something new.`
+
+const gptOptions = ["block", "pass", "unsure"];
 
 function start() {
     if (localStorage.getItem(SYSTEM_PROMPT_KEY) == null) {
@@ -63,9 +82,9 @@ function start() {
     resetButton.onclick = () => {
         multishotPrompt = []
         localStorage.setItem(MULTISHOT_PROMPT_KEY, JSON.stringify(multishotPrompt));
-
         systemPrompt = DEFAULT_SYSTEM_PROMPT;
         localStorage.setItem(SYSTEM_PROMPT_KEY, systemPrompt);
+        checkall();
     }
     resetButton.className = "reset-button"
     resetButton.innerHTML = "reset all preferences"

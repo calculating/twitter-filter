@@ -123,23 +123,20 @@ function saveTweet(element) {
 
 function filterTweet(element, postText, hasImage) {
     if (Object.keys(checkedTweets).includes(postText)) {
-        if (checkedTweets[postText] === "FILTER") {
-            markTweetAsFiltered(element)
-        } else if (checkedTweets[postText] === "PASS") {
-            element.style.backgroundColor = BLUE;
-            element.style.height = "auto";
-        } else if (checkedTweets[postText] === "PENDING") {
-            element.style.backgroundColor = YELLOW;
-            element.style.height = "5px";
+        if (checkedTweets[postText] === "block") {
+            markTweetAsBlocked(element)
+        } else if (checkedTweets[postText] === "pass") {
+            markTweetAsPassed(element)
+        } else if (checkedTweets[postText] === "pending") {
+            markTweetAsPending(element)
         } else {
-            console.warn("The following tweet is stored as either 'FILTER', 'PASS', or 'PENDING':\n", postText)
+            console.warn(`The following tweet is stored as neither ${gptOptions.join(" nor ")}:\n`, postText)
         }
         return;
     }
 
-    checkedTweets[postText] = "PENDING"
-    element.style.backgroundColor = YELLOW;
-    element.style.height = "5px";
+    checkedTweets[postText] = "pending"
+    markTweetAsPending(element)
 
     const prompt = [
         { "role": "system", "content": systemPrompt },
@@ -164,15 +161,18 @@ function filterTweet(element, postText, hasImage) {
                 return;
             }
             const reply = data.choices[0].message.content
-            if (reply === 'FILTER') {
-                markTweetAsFiltered(element)
-                checkedTweets[postText] = "FILTER"
-            } else if (reply === 'PASS') {
-                element.style.backgroundColor = BLUE;
-                element.style.height = "auto";
-                checkedTweets[postText] = "PASS"
+            if (reply === 'block') {
+                markTweetAsBlocked(element);
+                checkedTweets[postText] = "block";
+            } else if (reply === 'pass') {
+                markTweetAsPassed(element)
+                checkedTweets[postText] = "pass";
+            } else if (reply === 'unsure') {
+                markTweetAsUnsure(element);
+                checkedTweets[postText] = "unsure";
             } else {
-                console.error("For the following tweet, GPT gave a response that was neither 'FILTER' nor 'PASS':\n", postText)
+                console.error(`For the following tweet, GPT gave a response that was neither ${gptOptions.join(" nor ")}:\n`, postText)
+                element.style.backgroundColor = "gray"
             }
         }
     ).catch((error) => {
@@ -180,8 +180,23 @@ function filterTweet(element, postText, hasImage) {
     });
 }
 
-function markTweetAsFiltered(element) {
-    element.style.backgroundColor = RED;
+function markTweetAsPassed(tweetHTMLElement) {
+    tweetHTMLElement.style.backgroundColor = BLUE;
+    tweetHTMLElement.style.height = "auto";
+}
+
+function markTweetAsPending(tweetHTMLElement) {
+    tweetHTMLElement.style.backgroundColor = YELLOW;
+    tweetHTMLElement.style.height = "5px";
+}
+
+function markTweetAsUnsure(tweetHTMLElement) {
+    tweetHTMLElement.style.backgroundColor = RED;
+    tweetHTMLElement.style.height = "auto";
+}
+
+function markTweetAsBlocked(tweetHTMLElement) {
+    tweetHTMLElement.style.backgroundColor = RED;
 
     // uncomment following lines for testing: hover over the tweet to see the full text.
     // element.onmouseover = () => {
@@ -192,5 +207,5 @@ function markTweetAsFiltered(element) {
     // }
 
     // comment out the following line for testing (not delete filtered tweets just make them red)
-    element.style.height = '5px';
+    tweetHTMLElement.style.height = '5px';
 }
