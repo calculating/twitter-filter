@@ -130,7 +130,7 @@ function filterTweet(element, postText, hasImage) {
         } else if (checkedTweets[postText] === "pending") {
             markTweetAsPending(element)
         } else {
-            console.warn(`The following tweet is stored as neither ${gptOptions.join(" nor ")}:\n`, postText)
+            console.warn(`The following tweet is stored as neither ${gptOptions.map(x => `"${x}"`).join(" nor ")}:\n`, postText)
         }
         return;
     }
@@ -161,17 +161,18 @@ function filterTweet(element, postText, hasImage) {
                 return;
             }
             const reply = data.choices[0].message.content
-            if (reply === 'block') {
+            if (reply.match(/block/i)) {
                 markTweetAsBlocked(element);
                 checkedTweets[postText] = "block";
-            } else if (reply === 'pass') {
+            } else if (reply.match(/pass/i)) {
                 markTweetAsPassed(element)
                 checkedTweets[postText] = "pass";
-            } else if (reply === 'unsure') {
+            } else if (reply.match(/unsure/i)) {
                 markTweetAsUnsure(element);
                 checkedTweets[postText] = "unsure";
             } else {
-                console.error(`For the following tweet, GPT gave a response that was neither ${gptOptions.join(" nor ")}:\n`, postText)
+                // console.error(`For the following tweet, GPT gave the response ${reply}. Neither ${gptOptions.join(" nor ")}:\n`, postText)
+                console.error("GPT gave a response of: " + reply)
                 element.style.backgroundColor = "gray"
             }
         }
