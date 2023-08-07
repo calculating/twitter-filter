@@ -332,6 +332,32 @@ fastify.post("/api/chat", async function handler(request, reply) {
   return json;
 });
 
+fastify.get<{ Querystring: { offset?: number; limit?: number } }>(
+  "/debug",
+  async function handler(request, reply) {
+    const limit = request.query.limit || 100;
+    const offset = request.query.offset || 0;
+
+    const tweets = await db.all(
+      "SELECT * FROM raw_tweets ORDER BY created_at DESC LIMIT ? OFFSET ?",
+      limit,
+      offset
+    );
+    const apiCalls = await db.all(
+      "SELECT * FROM api_calls ORDER BY created_at DESC LIMIT ? OFFSET ?",
+      limit,
+      offset
+    );
+    const users = await db.all(
+      "SELECT * FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?",
+      limit,
+      offset
+    );
+
+    return reply.view("debug.ejs", { tweets, apiCalls, users });
+  }
+);
+
 fastify.addHook("onClose", async (_instance, done) => {
   await db.close();
   done();

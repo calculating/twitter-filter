@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Nerdsniper - debug view</title>
+    <link rel="stylesheet" href="/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      pre { white-space: pre-wrap; }
+    </style>
+  </head>
+
+  <body>
+    <h1>Nerdsniper - debug view</h1>
+    <p>Database dump in reverse chronological order, tables:</p>
+    <ul>
+      <li><a href="#api-calls">API calls</a></li>
+      <li><a href="#users">Users</a></li>
+      <li><a href="#tweets">Tweets</a></li>
+    </ul>
+
+    <h2 id="api-calls">API calls</h2>
+    <ol>
+      <% for (const call of apiCalls) { %>
+        <li>
+          <ul>
+            <li>ID: <%= call.id %></li>
+            <li>Created at: <%= new Date(call.created_at) %></li>
+            <li>Request JSON: <pre><%= JSON.stringify(JSON.parse(call.request_json), null, 2) %></pre></li>
+            <li>Response JSON: <pre><%= JSON.stringify(JSON.parse(call.response_json), null, 2) %></pre></li>
+          </ul>
+        </li>
+      <% } %>
+    </ol>
+
+    <h2 id="users">Users</h2>
+    <ol>
+    <% for (const user of users) { %>
+      <li>
+        <ul>
+          <li>ID: <%= user.twitter_id %></li>
+          <li>Created at: <%= new Date(user.created_at) %></li>
+          <li>Stripe ID: <%= user.stripe_customer_id %></li>
+          <li>Stripe subscription ID: <%= user.stripe_subscription_id %></li>
+        </ul>
+      </li>
+    <% } %>
+    </ol>
+
+    <h2 id="tweets">Tweets</h2>
+    <ol>
+      <% for (const tweet of tweets) { %>
+        <li><pre><%= JSON.stringify(tweet, null, 2) %></pre></li>
+      <% } %>
+    </ol>
+  </body>
+</html>
