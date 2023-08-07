@@ -61,8 +61,8 @@ function stylizeTweet(element, postText, hasImage) {
             if (event.key === "Enter") {
                 // Log the input value
                 console.log(inputBox.value);
-                const feedbackPrefix = operation === "minus" ? "Marked block if: " : "Marked pass if: ";
-                feedback(feedbackPrefix + inputBox.value);
+                const feedbackPrefix = operation === "minus" ? "- Marked block if: " : "- Marked pass if: ";
+                feedback(feedbackPrefix + `"` + inputBox.value + `"`);
                 // remove the feedback box
                 row.removeChild(inputBox);
             }

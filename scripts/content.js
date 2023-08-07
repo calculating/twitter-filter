@@ -18,7 +18,7 @@ Diablo IV is a great game. Nice work by the
  team!
 \`\`\` 
 
-- General preference: I only want to see tweets that keep me informed about current events or teach me something new.`
+- General preference: "I only want to see tweets that keep me informed about current events or teach me something new."`
 
 const gptOptions = ["block", "pass", "unsure"];
 
@@ -88,7 +88,30 @@ function start() {
     }
     resetButton.className = "reset-button"
     resetButton.innerHTML = "reset all preferences"
-    document.body.appendChild(resetButton)
+
+    // Enter your general preferences
+    const input = document.createElement("textarea")
+    input.className = "feedback-input"
+    input.placeholder = "i dislike anything cryptocurrency related"
+    input.onchange = () => {
+        if (e.key === "Enter") {
+            // add input.value to systemPrompt
+            feedback(`- General preference: "${input.value}"`);
+            input.value = "";
+        }
+    }
+
+    const label = document.createElement("p")
+    label.innerHTML = "What tweets do you want (or don't want) to see?"
+    label.className = "feedback-label"
+
+    const wrapper = document.createElement("div")
+    wrapper.className = "feedback-wrapper"
+    wrapper.appendChild(label)
+    wrapper.appendChild(input)
+    wrapper.appendChild(resetButton)
+
+    document.body.appendChild(wrapper)
 
     // check all tweets on page load
     checkall();

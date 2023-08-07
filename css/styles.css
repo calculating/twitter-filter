@@ -27,36 +27,11 @@ svg.feedback-button-icon {
     overflow: hidden;
 }
 
-div.modalWrapper {
-    font-family: 'TwitterChirp', sans-serif;
+div.feedback-wrapper {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-div.modal {
-    max-width: 50rem;
-    padding: 2rem 3rem;
-    margin: 2rem 3rem;
-    background-color: white;
-    border-radius: 1rem;
-}
-
-div.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 99;
+    bottom: 6rem;
+    right: 1rem;
+    font-family: "TwitterChirp";
 }
 
 textarea.feedback-input {
@@ -68,21 +43,9 @@ textarea.feedback-input {
     line-height: 1.75rem;
 }
 
-div.feedback-tweet {
-    border-radius: 1rem;
-    padding: 1rem 2rem; /* top/bottom left/right */
-    border: #cfd9de 1px solid; /* the color twitter uses for quote tweet borders. */
-    margin: 3rem 0;
-}
-
-h1.feedback-title {
-    font-weight: bold;
-    font-size: 2rem;
+p.feedback-label {
     opacity: 70%;
-}
-
-p.feedback-description {
-    opacity: 50%;
+    font-weight: bold;
 }
 
 button.reset-button {
@@ -94,10 +57,8 @@ button.reset-button {
     font-weight: bold;
     font-size: larger;
     cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
-    position: fixed;
-    bottom: 6rem;
-    right: 1rem;
+    transition: background-color 0.2s ease-in-out; 
+    margin-top: 8rem;
 }
 
 button.reset-button:hover {
