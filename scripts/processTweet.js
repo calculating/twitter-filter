@@ -158,7 +158,8 @@ function filterTweet(element, postText, hasImage) {
         body: JSON.stringify({
             'model': 'gpt-3.5-turbo',
             'messages': prompt,
-            'temperature': 0
+            'temperature': 0,
+            'logit_bias':{13271:-50},
         })
     }).then(response => response.json()).then(
         data => {
