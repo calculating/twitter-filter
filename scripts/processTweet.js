@@ -80,7 +80,7 @@ function stylizeTweet(element, postText, hasImage) {
             },
             {
                 "role": "assistant",
-                "content": "FILTER"
+                "content": "block"
             },
         ], false)
     }
@@ -93,7 +93,7 @@ function stylizeTweet(element, postText, hasImage) {
             },
             {
                 "role": "assistant",
-                "content": "PASS"
+                "content": "pass"
             },
         ], false)
     }
