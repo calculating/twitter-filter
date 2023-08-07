@@ -96,7 +96,7 @@ button.reset-button {
     cursor: pointer;
     transition: background-color 0.2s ease-in-out;
     position: fixed;
-    bottom: 1rem;
+    bottom: 6rem;
     right: 1rem;
 }
 
