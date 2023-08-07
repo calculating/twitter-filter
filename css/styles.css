@@ -85,7 +85,7 @@ p.feedback-description {
     opacity: 50%;
 }
 
-button.feedback-submit {
+button.reset-button {
     padding: 1rem 2rem;
     border-radius: 2rem;
     border: none;
@@ -95,10 +95,11 @@ button.feedback-submit {
     font-size: larger;
     cursor: pointer;
     transition: background-color 0.2s ease-in-out;
-    position: relative;
-    float: right;
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
 }
 
-button.feedback-submit:hover {
+button.reset-button:hover {
     background-color: #00a0d2;
 }
