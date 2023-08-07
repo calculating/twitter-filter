@@ -81,7 +81,7 @@ function stylizeTweet(element, postText, hasImage) {
                 "role": "assistant",
                 "content": "FILTER"
             },
-        ])
+        ], false)
     }
     function plussed() {
         replaceWithInput();
@@ -94,7 +94,7 @@ function stylizeTweet(element, postText, hasImage) {
                 "role": "assistant",
                 "content": "PASS"
             },
-        ])
+        ], false)
     }
 
     // Add event listeners to the buttons

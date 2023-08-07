@@ -12,11 +12,11 @@ function feedback(newpref) {
     checkall();
 }
 
-function addMultishotPrompt(newpref) {
+function addMultishotPrompt(newpref, reload = true) {
     // newPref: {role: string, content: string}[]
     multishotPrompt = [...multishotPrompt, ...newpref]
     localStorage.setItem(MULTISHOT_PROMPT_KEY, JSON.stringify(multishotPrompt));
-    checkall();
+    if (reload) checkall();
 }
 
 function waitForAndFocusElement(querySelector) {
