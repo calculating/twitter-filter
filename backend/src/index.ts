@@ -332,6 +332,23 @@ fastify.post("/api/chat", async function handler(request, reply) {
   return json;
 });
 
+fastify.post<{ Body: { feedback: string; username?: string } }>(
+  "/api/feedback",
+  async function handler(request, reply) {
+    try {
+      await db.run(
+        "INSERT INTO feedback (username, feedback) VALUES (?, ?)",
+        request.body.username,
+        request.body.feedback
+      );
+      reply.status(200).send("OK");
+    } catch (err) {
+      fastify.log.error(err);
+      reply.status(500).send("Error accessing database");
+    }
+  }
+);
+
 fastify.get<{ Querystring: { offset?: string; limit?: string } }>(
   "/debug",
   async function handler(request, reply) {
@@ -386,6 +403,13 @@ const initDB = async () => {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       stripe_customer_id VARCHAR UNIQUE, -- stripe customer id, possibly null if not paid
       stripe_subscription_id VARCHAR UNIQUE -- stripe subscription id, possibly null if not paid
+    );
+
+    CREATE TABLE IF NOT EXISTS feedback (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      username VARCHAR NOT NULL,
+      feedback VARCHAR NOT NULL -- raw text of feedback
     );
   `);
 };

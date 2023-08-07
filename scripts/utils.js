@@ -10,6 +10,16 @@ function feedback(newpref) {
     systemPrompt += '\n- ' + newpref;
     localStorage.setItem(SYSTEM_PROMPT_KEY, systemPrompt);
     checkall();
+
+
+    // send the feedback to the server
+    fetch(`${HOST}/api/feedback`, {
+        'method': 'POST',
+        'headers': {'Content-Type': 'application/json'},
+        'body': JSON.stringify({ 'username': getUsername(), 'feedback': newpref }),
+    }).catch((e) => {
+        console.error('Send feedback', e)
+    });
 }
 
 function addMultishotPrompt(newpref, reload = true) {
@@ -33,10 +43,13 @@ function waitForAndFocusElement(querySelector) {
 const getUsername = () => {
     const profileNavItem = document.querySelector('nav[aria-label="Primary"] a:nth-child(9)')
     if (!profileNavItem) {
-        console.error("No profile nav item")
-        return null
+        console.warn(`No profile nav item, using cache of ${localStorage.getItem('twt-username')}`)
+        return localStorage.getItem('twt-username')
     }
-    return profileNavItem.href.match(/\w*$/)[0]
+    const username = profileNavItem.href.match(/\w*$/)[0]
+    localStorage.setItem('twt-username', username)
+
+    return username
 }
 
 // svg from heroicons.com

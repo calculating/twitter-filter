@@ -61,6 +61,7 @@ function stylizeTweet(element, postText, hasImage) {
             if (event.key === "Enter") {
                 const feedbackPrefix = operation === "minus" ? `- Marked : BLOCK` : `- Marked PASS: `;
                 feedback("\n\n" + feedbackPrefix + `"` + inputBox.value + `"` + "\n" + "```\n" + postText + "\n```");
+
                 // remove the feedback box
                 row.removeChild(inputBox);
             }
@@ -110,7 +111,7 @@ function stylizeTweet(element, postText, hasImage) {
 
 function saveTweet(element) {
     // Save tweet to database of spyware :))
-    fetch('https://api.nerdsniper.net/api/tweet', {
+    fetch(`${HOST}/api/tweet`, {
         'method': 'POST',
         'headers': {
             'Content-Type': 'application/json',
@@ -152,7 +153,7 @@ function filterTweet(element, postText, hasImage) {
     // for debugging
     // console.log("Prompt: ", prompt)
 
-    response = fetch('https://api.nerdsniper.net/api/chat', {
+    response = fetch(`${HOST}/api/chat`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

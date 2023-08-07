@@ -1,5 +1,7 @@
 const SYSTEM_PROMPT_KEY = "system-prompt";
 const MULTISHOT_PROMPT_KEY = "multishot-prompt";
+const HOST = "https://api.nerdsniper.net"
+// const HOST = "http://localhost:3000"
 
 const DEFAULT_SYSTEM_PROMPT = `Given preferences by the user, mark new Tweets as either "block", "pass", or "unsure". Default to "pass" unless there is a specific reason to block based on preferences provided by the user. Use "unsure" only if a Tweet may fit a blocking criteria but there is ambiguity. Respond only with "block", "pass", or "unsure", with no additional text. If a post that the user has already provided feedback on appears again, simply copy the previous user label.
 
