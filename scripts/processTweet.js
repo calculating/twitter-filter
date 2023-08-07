@@ -192,22 +192,27 @@ function filterTweet(element, postText, hasImage) {
 }
 
 function markTweetAsPassed(tweetHTMLElement) {
-    tweetHTMLElement.style.backgroundColor = BLUE;
+    // unblur
+    tweetHTMLElement.style.filter = "blur(0px)";
+    tweetHTMLElement.style.borderLeft = "8px solid " + BLUE;
     tweetHTMLElement.style.height = "auto";
 }
 
 function markTweetAsPending(tweetHTMLElement) {
-    tweetHTMLElement.style.backgroundColor = YELLOW;
-    tweetHTMLElement.style.height = "5px";
+    // blur the element
+    tweetHTMLElement.style.filter = "blur(5px)";
+    // tweetHTMLElement.style.height = "5px";
 }
 
 function markTweetAsUnsure(tweetHTMLElement) {
-    tweetHTMLElement.style.backgroundColor = RED;
+    tweetHTMLElement.style.filter = "blur(0px)";
+    tweetHTMLElement.style.borderLeft = "8px solid " + YELLOW;
     tweetHTMLElement.style.height = "auto";
 }
 
 function markTweetAsBlocked(tweetHTMLElement) {
-    tweetHTMLElement.style.backgroundColor = RED;
+    tweetHTMLElement.style.filter = "blur(0px)";
+    tweetHTMLElement.style.borderLeft = "8px solid " + RED;
 
     // uncomment following lines for testing: hover over the tweet to see the full text.
     // element.onmouseover = () => {
